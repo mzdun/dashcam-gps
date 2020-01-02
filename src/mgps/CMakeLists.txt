@@ -1,5 +1,9 @@
 add_library(mgps STATIC
+    include/mgps/cstdio.hh
+    include/mgps/isom.hh
     include/mgps/library.hh
+    cstdio.cc
+    isom.cc
     library.cc
 	)
 
