@@ -1,0 +1,12 @@
+---
+Language:        Cpp
+BasedOnStyle:  Chromium
+AccessModifierOffset: -4
+AllowShortIfStatementsOnASingleLine: true
+BreakConstructorInitializersBeforeComma: true
+BreakConstructorInitializers: BeforeComma
+IndentWidth:     4
+NamespaceIndentation: All
+TabWidth:        4
+UseTab:          ForIndentation
+...
