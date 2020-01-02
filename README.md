@@ -1,4 +1,4 @@
-# Dashcam GPS viewer
+# Dashcam GPS Viewer
 
 ## Goals
 
