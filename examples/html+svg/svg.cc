@@ -13,6 +13,39 @@
 
 namespace fs = std::filesystem;
 
+std::ostream& operator<<(std::ostream& out,
+						 mgps::library::video::clip clip_type) {
+	using namespace mgps::library::video;
+	out << "<span class=\"clip-type\"";
+	switch (clip_type) {
+		case clip::emergency:
+			out << " title=\"Emergency\"";
+			break;
+		case clip::parking:
+			out << " title=\"Parking incident\"";
+			break;
+		default:
+			break;
+	}
+	out << ">&#x1F3AC";
+	if (clip_type != clip::normal) {
+		out << "<span class=\"overlay\">";
+		switch (clip_type) {
+			case clip::emergency:
+				out << "&#x1F198;";
+				break;
+			case clip::parking:
+				out << "&#x1F17F;&#xFE0F;";
+				break;
+			default:
+				out << "&#x1F615;";
+				break;
+		}
+		out << "</span>";  // overlay
+	}
+	return out << "</span>";  // clip-type
+}
+
 namespace mgps::svg {
 	using namespace mgps::isom;
 	using namespace mgps::library;
@@ -53,6 +86,15 @@ a { text-decoration: none }
 
 .num {
 	text-align: right;
+}
+
+.clip-type {
+	font-size: 120%
+}
+.overlay {
+	font-size: 75%;
+	margin-left: -1em;
+	vertical-align: sub;
 }
 </style>
 <body>
@@ -142,7 +184,6 @@ a { text-decoration: none }
 				std::error_code ec{};
 				auto cwd = fs::current_path(ec);
 				auto can_use_proximate = !ec;
-				auto clip_no = 0u;
 				for (auto& clip : stride.clips) {
 					std::cout << R"(<a target="player-page" href=")";
 					bool printed_proximate = false;
@@ -154,7 +195,7 @@ a { text-decoration: none }
 						}
 					}
 					if (!printed_proximate) std::cout << clip.filename.string();
-					std::cout << R"("><code>#)" << ++clip_no << "</code></a>\n";
+					std::cout << R"(">)" << clip.type << "</a>\n";
 				}
 				std::cout << "</td></tr>\n";
 			}

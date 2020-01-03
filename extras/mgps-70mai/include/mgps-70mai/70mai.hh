@@ -9,10 +9,8 @@ namespace mgps::isom::mai {
 
 	constexpr auto GPS_box = synth_type("GPS ");
 
-	enum class clip { unrecognized, other, NO, EV, PA };
-
 	struct clip_filename_info {
-		clip type{clip::unrecognized};
+		library::video::clip type{library::video::clip::unrecognized};
 		local_milliseconds ts{};
 	};
 

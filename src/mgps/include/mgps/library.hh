@@ -91,10 +91,11 @@ namespace mgps::library {
 			}
 
 		private:
-			constexpr uint64_t fraction_as_minutes_and_thousandths() const
-			    noexcept {
+			constexpr uint64_t fraction_as_minutes_and_thousandths()
+				const noexcept {
 				using thousandth_of_minute = std::ratio<1, 60 * 1000>::type;
-				using scale = std::ratio_divide<precision, thousandth_of_minute>::type;
+				using scale =
+					std::ratio_divide<precision, thousandth_of_minute>::type;
 
 				auto const reminder = fraction();
 				return reminder * scale::num / scale::den;
@@ -145,7 +146,16 @@ namespace mgps::library {
 	}  // namespace track
 
 	namespace video {
+		enum class clip : int {
+			unrecognized,
+			normal,
+			emergency,
+			parking,
+			other
+		};
+
 		struct file : timeline_item {
+			clip type;
 			fs::path filename;
 		};
 

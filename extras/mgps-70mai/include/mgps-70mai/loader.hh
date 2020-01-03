@@ -13,7 +13,7 @@ namespace mgps::library::mai {
 	private:
 		struct file_info {
 			fs::path filename;
-			isom::mai::clip type{isom::mai::clip::unrecognized};
+			video::clip type{video::clip::unrecognized};
 			local_milliseconds date_time;
 			ch::milliseconds duration;
 			std::vector<track::gps_data> points;

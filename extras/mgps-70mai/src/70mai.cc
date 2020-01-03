@@ -5,9 +5,12 @@
 namespace mgps::isom::mai {
 	namespace {
 		static constexpr auto filenames = ctll::fixed_string{
-		    "^([A-Za-z]{2})([0-9]{4})([0-9]{2})([0-9]{2})-([0-9]{2})([0-9]{2})("
-		    "[0-"
-		    "9]{2})-.*$"};
+			"^"
+			"([A-Za-z]{2})"                   // NO, EV, PA
+			"([0-9]{4})([0-9]{2})([0-9]{2})"  // YYYYMMDD
+			"-"
+			"([0-9]{2})([0-9]{2})([0-9]{2})"  // HHMMSS
+			"-.*$"};
 
 		template <typename Number>
 		bool from_chars(std::string_view chars, Number& value) {
@@ -38,9 +41,10 @@ namespace mgps::isom::mai {
 		}
 
 		track::coord make_coord(uint32_t deg_min_1000, char direction) {
-			auto const full_degrees = (deg_min_1000 / 100'000ull) * track::coord::precision::den;
-			auto const minutes_fraction =
-			    (deg_min_1000 % 100'000ull) * track::coord::precision::den / 60'000;
+			auto const full_degrees =
+				(deg_min_1000 / 100'000ull) * track::coord::precision::den;
+			auto const minutes_fraction = (deg_min_1000 % 100'000ull) *
+										  track::coord::precision::den / 60'000;
 			return {full_degrees + minutes_fraction, NESW(direction)};
 		}
 
@@ -148,12 +152,12 @@ namespace mgps::isom::mai {
 		if (!parts) return {};
 
 		auto const clip_type = [](std::string_view type) {
-			if (type.size() != 2) return clip::other;
+			using namespace library::video;
 #define UP(C) std::toupper(static_cast<unsigned char>(C))
 #define TYPE_IS(L1, L2) ((UP(type[0]) == L1) && (UP(type[1]) == L2))
-			if (TYPE_IS('N', 'O')) return clip::NO;
-			if (TYPE_IS('E', 'V')) return clip::EV;
-			if (TYPE_IS('P', 'A')) return clip::PA;
+			if (TYPE_IS('N', 'O')) return clip::normal;
+			if (TYPE_IS('E', 'V')) return clip::emergency;
+			if (TYPE_IS('P', 'A')) return clip::parking;
 #undef TYPE_IS
 #undef UP
 			return clip::other;

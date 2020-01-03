@@ -4,7 +4,6 @@
 
 #include "mgps-70mai/70mai.hh"
 
-std::ostream& operator<<(std::ostream& dbg, mgps::isom::mai::clip clip_type);
 std::ostream& operator<<(std::ostream& dbg, date::local_days const& time);
 std::ostream& operator<<(std::ostream& dbg,
                          mgps::local_milliseconds const& time);

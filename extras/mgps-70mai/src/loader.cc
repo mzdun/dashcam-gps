@@ -46,6 +46,7 @@ namespace mgps::library::mai {
 
 					clip.offset = interim_clip.date_time.time_since_epoch();
 					clip.duration = interim_clip.duration;
+					clip.type = interim_clip.type;
 					clip.filename = std::move(interim_clip.filename);
 
 					// same here: for now, a point's time is it's absolute time
@@ -178,6 +179,7 @@ namespace mgps::library::mai {
 	bool loader::add_file(fs::path const& file_name) noexcept {
 		using namespace isom;
 		using namespace isom::mai;
+		using namespace library::video;
 
 		auto info = get_filename_info(file_name.filename().string());
 		if (info.type == clip::unrecognized) return false;

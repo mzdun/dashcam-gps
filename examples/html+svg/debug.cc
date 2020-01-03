@@ -1,24 +1,6 @@
 #include "debug.hh"
 #include <cinttypes>
 
-std::ostream& operator<<(std::ostream& dbg, mgps::isom::mai::clip clip_type) {
-	using namespace mgps::isom::mai;
-	switch (clip_type) {
-		case clip::NO:
-			return dbg << "[ ]";
-		case clip::EV:
-			return dbg << "[*]";
-		case clip::PA:
-			return dbg << "[P]";
-		default:
-			break;
-	}
-	return dbg << ("mai::clip(" +
-	               std::to_string(
-	                   static_cast<std::underlying_type_t<clip>>(clip_type)) +
-	               ")")
-	                  .c_str();
-}
 std::ostream& operator<<(std::ostream& dbg, date::local_days const& time) {
 	using namespace date;
 	using namespace std::chrono;
