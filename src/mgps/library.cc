@@ -29,4 +29,12 @@ namespace mgps::library::track {
 		constexpr uint64_t R_in_metres = 6371008;
 		return static_cast<uint64_t>(c * R_in_metres + .5);
 	}
+
+	bool plot::has_points() const noexcept {
+		for (auto const& seg : segments) {
+			if (seg.points.empty()) continue;
+			return true;
+		}
+		return false;
+	}
 }  // namespace mgps::library::track

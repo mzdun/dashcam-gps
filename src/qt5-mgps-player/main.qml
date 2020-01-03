@@ -7,7 +7,11 @@ Window {
     visible: true
     width: 722
     height: 729
-    title: qsTr("Dashcam GPS Viewer")
+    title: qsTr("Dashcam GPS Viewer") + " | " +
+           trip.playbackString + " » " +
+           trip.durationString + " | " +
+           trip.timelineString + " | " +
+           trip.position
 
     Plugin {
         id: mapService
@@ -18,7 +22,6 @@ Window {
         id: map
         anchors.fill: parent
         plugin: mapService
-        center: centerPoint
-        zoomLevel: 13
+        visibleRegion: trip.visibleRegion
     }
 }
