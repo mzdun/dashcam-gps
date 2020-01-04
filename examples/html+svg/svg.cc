@@ -146,10 +146,12 @@ a { text-decoration: none }
 			          << pl{trip.plot.segments.size(), "segment"} << " with "
 			          << pl{gpses, "point"}
 			          << "</td></tr>\n<tr><th>Distance:</th><td>"
-			          << dist / 1000.0 << " km";
+					  << double(dist) / 1000.0 << " km";
 			if (driven.count())
 				std::cout << "</td></tr>\n<tr><th>Average speed:</th><td>"
-				          << int((dist / 1000.0) / hourf{driven}.count() + 0.5)
+						  << int((double(dist) / 1000.0) /
+									 hourf{driven}.count() +
+								 0.5)
 				          << " km/h";
 			std::cout << R"(</td></tr>
 </table>
@@ -243,7 +245,7 @@ a { text-decoration: none }
 				    << R"(" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;fill:none">
 )";
 				for (auto& segment : trip.plot.segments) {
-					auto const distance = segment.distance() / 1000.0;
+					auto const distance = double(segment.distance()) / 1000.0;
 					std::cout << "<g>\n";
 
 					bool first_point = true;

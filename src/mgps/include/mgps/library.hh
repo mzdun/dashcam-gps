@@ -1,6 +1,15 @@
 #pragma once
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 #include <date/date.h>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 #include <cstdint>
 #include <filesystem>
@@ -52,9 +61,9 @@ namespace mgps::library {
 			}
 
 			constexpr double as_float() const noexcept {
-				auto const degs = degrees();
+				auto const degs = double(degrees());
 				auto const hundred_millionths =
-				    double(fraction()) / precision::den;
+					double(fraction()) / precision::den;
 				if (is_neg()) return -(degs + hundred_millionths);
 				return degs + hundred_millionths;
 			}
@@ -170,8 +179,8 @@ namespace mgps::library {
 			}
 
 		private:
-			constexpr uint64_t fraction_as_minutes_and_thousandths()
-				const noexcept {
+			constexpr uint64_t fraction_as_minutes_and_thousandths() const
+				noexcept {
 				using thousandth_of_minute = std::ratio<1, 60 * 1000>::type;
 				using scale =
 					std::ratio_divide<precision, thousandth_of_minute>::type;
@@ -221,8 +230,12 @@ namespace mgps::library {
 
 			Point center() const noexcept {
 				Point out{};
-				out.template get<0>() = (topLeft.template get<0>() + bottomRight.template get<0>()) / 2;
-				out.template get<1>() = (topLeft.template get<1>() + bottomRight.template get<1>()) / 2;
+				out.template get<0>() = (topLeft.template get<0>() +
+										 bottomRight.template get<0>()) /
+										2;
+				out.template get<1>() = (topLeft.template get<1>() +
+										 bottomRight.template get<1>()) /
+										2;
 				return out;
 			}
 
@@ -270,17 +283,17 @@ namespace mgps::library {
 
 			template <typename Point, typename Filter>
 			boundary_type<Point> boundary_box_impl(Filter pred) const noexcept {
-				boundary_type<point> b{};
+				boundary_type<Point> b{};
 
 				for (auto const& seg : segments) {
 					if (seg.points.empty()) continue;
-					auto const& pt = seg.points.front();
-					b.topLeft = b.bottomRight = pt;
+					b.topLeft = b.bottomRight = pred(seg.points.front());
 					break;
 				}
 
 				for (auto const& seg : segments) {
-					for (auto const& pt : seg.points) {
+					for (auto const& pt_ : seg.points) {
+						auto&& pt = pred(pt_);
 						if (b.topLeft.template get<0>() > pt.template get<0>())
 							b.topLeft.template get<0>() = pt.template get<0>();
 						if (b.topLeft.template get<1>() < pt.template get<1>())

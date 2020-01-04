@@ -33,7 +33,7 @@ QDateTime QmlTrip::timeline() const noexcept {
 	auto const hms = hh_mm_ss{time};
 	return {QDate{int(ymd.year()), int(unsigned(ymd.month())),
 	              int(unsigned(ymd.day()))},
-	        QTime{hms.hours().count(), hms.minutes().count(),
+			QTime{int(hms.hours().count()), int(hms.minutes().count()),
 	              int(hms.seconds().count())}};
 }
 

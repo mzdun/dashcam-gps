@@ -26,4 +26,4 @@ namespace mgps::isom::mai {
 	bool read_moov_mhdr_duration(storage&,
 	                             box_info const&,
 	                             std::chrono::milliseconds&);
-};  // namespace mgps::isom::mai
+}  // namespace mgps::isom::mai

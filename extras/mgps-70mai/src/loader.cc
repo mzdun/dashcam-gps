@@ -13,14 +13,10 @@ namespace mgps::library::mai {
 
 		TREE_BOX_READER(file_reader, file_reader_data) {
 			using namespace isom::mai;
-			switch (box.type) {
-				case box_type::moov:
-					return read_moov_mhdr_duration(full, box, data().duration);
-				case GPS_box:
-					return read_GPS_box(full, box, data().points);
-				default:
-					break;
-			}
+			if (box.type == box_type::moov)
+				return read_moov_mhdr_duration(full, box, data().duration);
+			if (box.type == GPS_box)
+				return read_GPS_box(full, box, data().points);
 			return true;
 		}
 
@@ -174,7 +170,7 @@ namespace mgps::library::mai {
 				    last_segment.offset + last_segment.duration;
 			}
 		}
-	};  // namespace
+	}  // namespace
 
 	bool loader::add_file(fs::path const& file_name) noexcept {
 		using namespace isom;

@@ -10,6 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
 
+# The date library needs help with detecting compilers supporting
+# uncaught_exceptions (plural); the test for __cplusplus greater than
+# March 2017 does not work for VC and gcc...
+add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
+
 add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(extras)

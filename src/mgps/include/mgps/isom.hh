@@ -39,7 +39,7 @@ namespace mgps::isom {
 
 	inline constexpr box_type synth_type(char const (&fcc)[5]) {
 		return static_cast<box_type>(mk4cc(fcc));
-	};
+    }
 
 	enum class box_type : std::uint32_t {
 		// internal code type for unknown boxes

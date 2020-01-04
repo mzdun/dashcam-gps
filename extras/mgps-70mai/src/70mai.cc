@@ -1,5 +1,17 @@
 #include <charconv>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 #include <ctre.hpp>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #include <mgps-70mai/70mai.hh>
 
 namespace mgps::isom::mai {
@@ -37,7 +49,7 @@ namespace mgps::isom::mai {
 					break;
 			}
 			using Int = std::underlying_type_t<track::NESW>;
-			return static_cast<track::NESW>(static_cast<Int>(-1));
+			return static_cast<track::NESW>(std::numeric_limits<Int>::max());
 		}
 
 		track::coord make_coord(uint32_t deg_min_1000, char direction) {
@@ -144,8 +156,8 @@ namespace mgps::isom::mai {
 				}
 				return true;
 			}
-		};  // namespace loaders
-	}       // namespace
+		}  // namespace loaders
+	}      // namespace
 
 	clip_filename_info get_filename_info(std::string_view filename) {
 		auto parts = ctre::match<filenames>(filename);
@@ -209,4 +221,4 @@ namespace mgps::isom::mai {
 		out = duration.to_chrono();
 		return true;
 	}
-};  // namespace mgps::isom::mai
+}  // namespace mgps::isom::mai

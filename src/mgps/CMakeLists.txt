@@ -67,3 +67,7 @@ endif()
 
 target_include_directories(mgps PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(mgps date::date)
+
+if (NOT MSVC)
+	target_link_libraries(mgps stdc++fs)
+endif()
