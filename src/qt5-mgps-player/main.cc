@@ -69,10 +69,20 @@ void load_library(std::string const& dirname, trip& current_trip) {
 	         << pl{points, "point"};
 }
 
+namespace mGPS {
+	void qmlRegisterTypes(const char* url, int major, int minor) {
+		QmlTrip::qmlRegisterType(url, major, minor);
+	}
+
+	void qmlRegisterTypes() { qmlRegisterTypes("mGPS", 1, 0); }
+}  // namespace mGPS
+
 int main(int argc, char* argv[]) {
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	QGuiApplication app(argc, argv);
+
+	mGPS::qmlRegisterTypes();
 
 	QCommandLineParser parser;
 	QCommandLineOption DCIM("dcim", "Set the location of directory with clips.",
@@ -88,12 +98,12 @@ int main(int argc, char* argv[]) {
 		load_library(parser.value(DCIM).toUtf8().toStdString(), current_trip);
 	}
 
-	QmlTrip trip{};
+	mGPS::QmlTrip trip{};
 	trip.setTrip(&current_trip);
 
 	QQmlApplicationEngine engine;
 	engine.rootContext()->setContextProperty("trip", &trip);
-	const QUrl url(QStringLiteral("qrc:/main.qml"));
+	const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
 	QObject::connect(
 	    &engine, &QQmlApplicationEngine::objectCreated, &app,
 	    [url](QObject* obj, const QUrl& objUrl) {

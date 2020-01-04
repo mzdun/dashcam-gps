@@ -6,7 +6,9 @@ find_package(Qt5 COMPONENTS Core Quick Location Positioning REQUIRED)
 
 add_executable(mgps-player
     main.cc
-    main.qml
+    qml/main.qml
+    qml/MoviePlayer.qml
+    qml/RouteViewer.qml
     qml_trip.cc
     qml_trip.hh
     qml.qrc
