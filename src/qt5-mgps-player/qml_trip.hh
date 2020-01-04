@@ -2,6 +2,7 @@
 
 #include <QDate>
 #include <QGeoCoordinate>
+#include <QGeoPath>
 #include <QGeoRectangle>
 #include <QObject>
 #include "mgps/library.hh"
@@ -21,7 +22,9 @@ namespace mGPS {
 		Q_PROPERTY(QDateTime timeline READ timeline NOTIFY timelineChanged)
 		Q_PROPERTY(QString timelineString READ timelineString NOTIFY
 		               timelineStringChanged)
-		Q_PROPERTY(QGeoCoordinate position READ position NOTIFY positionChanged)
+		Q_PROPERTY(QGeoCoordinate carPosition READ carPosition NOTIFY
+		               carPositionChanged)
+		Q_PROPERTY(QVariantList segments READ segments NOTIFY segmentsChanged)
 	public:
 		QmlTrip();
 
@@ -31,9 +34,10 @@ namespace mGPS {
 		long long playback() const noexcept { return playback_.count(); }
 		long long duration() const noexcept { return duration_.count(); }
 		QDateTime timeline() const noexcept;
-		QGeoCoordinate const& position() const noexcept {
+		QGeoCoordinate const& carPosition() const noexcept {
 			return car_position_;
 		}
+		QVariantList const& segments() const noexcept { return segments_; }
 
 		QString playbackString() const;
 		QString durationString() const;
@@ -47,7 +51,9 @@ namespace mGPS {
 		void playbackStringChanged();
 		void timelineChanged();
 		void timelineStringChanged();
-		void positionChanged();
+		void carPositionChanged();
+		void removeSegments();
+		void segmentsChanged();
 
 	public slots:
 		void setPlayback(unsigned long long milliseconds);
@@ -64,5 +70,6 @@ namespace mGPS {
 		std::chrono::milliseconds timeline_{};
 		std::vector<jump> jumps_{};
 		QGeoCoordinate car_position_{};
+		QVariantList segments_{};
 	};
 }  // namespace mGPS

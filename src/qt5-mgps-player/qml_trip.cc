@@ -68,8 +68,11 @@ namespace mGPS {
 	void QmlTrip::setTrip(mgps::library::trip const* trip) {
 		trip_ = trip;
 
+		emit removeSegments();
+
 		jumps_.clear();
 		duration_ = {};
+		segments_.clear();
 
 		if (trip_) {
 			milliseconds timeline{};
@@ -84,6 +87,15 @@ namespace mGPS {
 				duration_ += slice.duration;
 				timeline = slice.offset + slice.duration;
 			}
+
+			segments_.reserve(int(trip_->plot.segments.size()));
+			for (auto const& seg : trip_->plot.segments) {
+				QList<QGeoCoordinate> path;
+				path.reserve(int(seg.points.size()));
+				for (auto const& pt : seg.points)
+					path.push_back({pt.lat.as_float(), pt.lon.as_float()});
+				segments_.push_back(QVariant::fromValue(QGeoPath{path}));
+			}
 		}
 
 		force_updates_ = true;
@@ -91,6 +103,7 @@ namespace mGPS {
 		force_updates_ = false;
 
 		emit tripChanged();
+		emit segmentsChanged();
 	}
 
 	void QmlTrip::setPlayback(unsigned long long new_millis) {
@@ -159,6 +172,6 @@ namespace mGPS {
 		if (force_updates_ || emit_timeline) emit timelineChanged();
 		if (force_updates_ || floor<seconds>(timeline_) != old_timeline)
 			emit timelineStringChanged();
-		if (force_updates_ || emit_position) emit positionChanged();
+		if (force_updates_ || emit_position) emit carPositionChanged();
 	}
 }  // namespace mGPS

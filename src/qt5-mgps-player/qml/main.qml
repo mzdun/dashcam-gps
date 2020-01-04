@@ -8,11 +8,12 @@ Window {
     visible: true
     width: 722
     height: 729
+    // icon: Image{ source: "/img/marker.png" }
     title: qsTr("Dashcam GPS Viewer") + " | " +
            trip.playbackString + " » " +
            trip.durationString + " | " +
            trip.timelineString + " | " +
-           trip.position
+           trip.carPosition
 
     RouteViewer {
         id: map
