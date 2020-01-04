@@ -5,7 +5,26 @@ namespace mgps::isom::cstdio {
 	bool storage::eof() const noexcept { return std::feof(bits_.get()); }
 
 	uint64_t storage::load(void* buffer, uint64_t length) {
-		return std::fread(buffer, 1, length, bits_.get());
+		static constexpr auto max_len = std::numeric_limits<size_t>::max();
+		if (max_len <= length) {
+			return std::fread(buffer, 1, static_cast<size_t>(length),
+			                  bits_.get());
+		}
+
+		uint64_t read{};
+		auto data = static_cast<char*>(buffer);
+
+		while (length) {
+			size_t chunk = max_len;
+			if (static_cast<uint64_t>(chunk) > length)
+				chunk = static_cast<size_t>(length);
+			auto const actualy_read = std::fread(data, 1, chunk, bits_.get());
+			if (!actualy_read) break;
+			read += actualy_read;
+			data += actualy_read;
+		}
+
+		return read;
 	}
 
 	uint64_t storage::tell() {
