@@ -4,11 +4,11 @@ import QtLocation 5.6
 import QtPositioning 5.6
 import mGPS 1.0
 
-Window {
+AppWindow {
     visible: true
     width: 722
     height: 729
-    // icon: Image{ source: "/img/marker.png" }
+    iconSource: ":/img/icon.png"
     title: qsTr("Dashcam GPS Viewer") + " | " +
            trip.playbackString + " » " +
            trip.durationString + " | " +

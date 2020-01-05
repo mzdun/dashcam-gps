@@ -4,5 +4,6 @@
         <file>qml/RouteViewer.qml</file>
         <file>qml/MoviePlayer.qml</file>
         <file>img/marker.svg</file>
+        <file>img/icon.png</file>
     </qresource>
 </RCC>

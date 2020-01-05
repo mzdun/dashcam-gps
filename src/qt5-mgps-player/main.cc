@@ -5,6 +5,7 @@
 #include <QQmlContext>
 #include <cinttypes>
 
+#include "appwindow.hh"
 #include "mgps-70mai/loader.hh"
 #include "qml_trip.hh"
 
@@ -72,6 +73,7 @@ void load_library(std::string const& dirname, trip& current_trip) {
 namespace mGPS {
 	void qmlRegisterTypes(const char* url, int major, int minor) {
 		QmlTrip::qmlRegisterType(url, major, minor);
+		::qmlRegisterType<AppWindow>(url, major, minor, "AppWindow");
 	}
 
 	void qmlRegisterTypes() { qmlRegisterTypes("mGPS", 1, 0); }

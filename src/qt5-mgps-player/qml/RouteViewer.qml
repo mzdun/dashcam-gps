@@ -57,7 +57,7 @@ Rectangle {
             segments.push(outline)
             map.addMapItem(outline)
 
-            var plot = Qt.createQmlObject('import QtLocation 5.6; MapPolyline { line.width: 3; line.color: "#dd2c00" }', map, "RouteViewer-updateSegments")
+            var plot = Qt.createQmlObject('import QtLocation 5.6; MapPolyline { line.width: 3; line.color: "#0085ca" }', map, "RouteViewer-updateSegments")
             plot.path = seg.path
             segments.push(plot)
             map.addMapItem(plot)
