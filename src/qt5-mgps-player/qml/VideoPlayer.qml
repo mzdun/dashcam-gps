@@ -17,12 +17,9 @@ Rectangle {
         autoPlay: true
         notifyInterval: 100
 
-        onPositionChanged: trip.playback = mediaPlayer.position + trip.clipOffset
-
-        onError: console.log(error, errorString)
-        onPaused: console.log(">>> paused")
-        onPlaying: console.log(">>> playing")
-        onStopped: console.log(">>> stopped")
-        onDurationChanged: console.log(">>> len", duration/1000)
+        onPositionChanged: trip.playback = position
+        onError: console.error(error, errorString)
     }
+
+    Component.onCompleted: trip.playerAvailable(mediaPlayer)
 }

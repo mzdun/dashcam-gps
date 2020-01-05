@@ -6,10 +6,14 @@ find_package(Qt5 COMPONENTS Core Quick Location Positioning Multimedia REQUIRED)
 
 set(PLAYER_SRCS
     main.cc
-    appwindow.cc
-    appwindow.hh
-    qml_trip.cc
-    qml_trip.hh
+    declarative/declarative.cc
+    declarative/declarative.hh
+    declarative/QmlAppWindow.cc
+    declarative/QmlAppWindow.hh
+    declarative/QmlObject.hh
+    declarative/QmlObject.cc
+    declarative/QmlTrip.cc
+    declarative/QmlTrip.hh
     qml.qrc
     )
 

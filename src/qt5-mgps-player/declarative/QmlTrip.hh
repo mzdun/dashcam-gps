@@ -4,12 +4,13 @@
 #include <QGeoCoordinate>
 #include <QGeoPath>
 #include <QGeoRectangle>
-#include <QObject>
+#include <QMediaPlayer>
 #include <QUrl>
+#include "QmlObject.hh"
 #include "mgps/library.hh"
 
-namespace mGPS {
-	class QmlTrip : public QObject {
+namespace mgps::declarative {
+	class QmlTrip : public QmlObject {
 		Q_OBJECT
 		Q_PROPERTY(
 		    QGeoRectangle visibleRegion READ visibleRegion NOTIFY tripChanged)
@@ -25,13 +26,15 @@ namespace mGPS {
 		               timelineStringChanged)
 		Q_PROPERTY(QGeoCoordinate carPosition READ carPosition NOTIFY
 		               carPositionChanged)
-		Q_PROPERTY(QVariantList segments READ segments NOTIFY segmentsChanged)
-		Q_PROPERTY(QUrl clipSource READ clipSource NOTIFY tripChanged)
-		Q_PROPERTY(int clipOffset READ clipOffset NOTIFY tripChanged)
+		Q_PROPERTY(QVariantList segments READ segments NOTIFY tripChanged)
 	public:
 		QmlTrip();
 
-		static void qmlRegisterType(char const* url, int major, int minor);
+		void setTrip(mgps::library::trip const* trip);
+
+		Q_INVOKABLE void playerAvailable(QObject*);
+
+		void setPlayback(unsigned long long milliseconds, bool forced = false);
 
 		QGeoRectangle visibleRegion() const noexcept;
 		long long playback() const noexcept { return playback_.count(); }
@@ -46,11 +49,6 @@ namespace mGPS {
 		QString durationString() const;
 		QString timelineString() const;
 
-		QUrl clipSource() const;
-		int clipOffset() const;
-
-		void setTrip(mgps::library::trip const* trip);
-
 	signals:
 		void tripChanged();
 		void playbackChanged();
@@ -58,18 +56,29 @@ namespace mGPS {
 		void timelineChanged();
 		void timelineStringChanged();
 		void carPositionChanged();
-		void removeSegments();
-		void segmentsChanged();
-
-	public slots:
-		void setPlayback(unsigned long long milliseconds);
 
 	private:
+		using milliseconds = std::chrono::milliseconds;
+		void populatePlaylist();
+		void populateJumpsAndDuration();
+		void populatePlots();
+		size_t currentIndex();
+		milliseconds playbackToTimeline(milliseconds) const;
+		QGeoCoordinate positionForTimeline(milliseconds) const;
+
+		std::chrono::milliseconds getOffset(size_t currentFile) {
+			if (currentFile >= offsets_.size()) {
+				if (offsets_.empty()) return {};
+				return offsets_.back();
+			}
+			return offsets_[currentFile];
+		}
+
 		struct jump {
 			std::chrono::milliseconds playback;
 			std::chrono::milliseconds fixup;
 		};
-		bool force_updates_{false};
+
 		mgps::library::trip const* trip_{nullptr};
 		std::chrono::milliseconds playback_{};
 		std::chrono::milliseconds duration_{};
@@ -77,5 +86,9 @@ namespace mGPS {
 		std::vector<jump> jumps_{};
 		QGeoCoordinate car_position_{};
 		QVariantList segments_{};
+		std::vector<std::chrono::milliseconds> offsets_{};
+		QMediaPlayer* player_{nullptr};
 	};
-}  // namespace mGPS
+}  // namespace mgps::declarative
+
+Q_DECLARE_METATYPE(mgps::declarative::QmlTrip);

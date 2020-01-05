@@ -6,8 +6,8 @@ import mGPS 1.0
 
 AppWindow {
     visible: true
-    width: 722
-    height: 729
+    width: 512
+    height: 864
     iconSource: ":/img/icon.png"
 
     title: qsTr("Dashcam GPS Viewer") + " | " +
@@ -18,8 +18,11 @@ AppWindow {
 
     Connections {
         id: scaler
-        property size frame: { width: 16; height: 9 }
+        property size frame
+        frame.width: 16
+        frame.height: 9
         target: player
+
         onFrameRectChanged: {
             var w = player.frameRect.width
             var h = player.frameRect.height
@@ -31,8 +34,6 @@ AppWindow {
                 frame.width = w
                 frame.height = h
             }
-
-            console.log("Frame:", frame)
         }
     }
 
@@ -46,7 +47,7 @@ AppWindow {
         }
     }
 
-    MoviePlayer {
+    VideoPlayer {
         id: player
         property int calculatedHight: parent.width / scaler.frame.width * scaler.frame.height
         height: calculatedHight > parent.height / 2 ? parent.height / 2 : calculatedHight
@@ -55,10 +56,5 @@ AppWindow {
             right: parent.right
             bottom: parent.bottom
         }
-    }
-
-    Component.onCompleted: {
-        player.mediaSource = trip.clipSource
-        console.log(player.mediaSource)
     }
 }

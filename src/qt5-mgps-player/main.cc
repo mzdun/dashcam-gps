@@ -5,9 +5,9 @@
 #include <QQmlContext>
 #include <cinttypes>
 
-#include "appwindow.hh"
+#include "declarative/QmlTrip.hh"
+#include "declarative/declarative.hh"
 #include "mgps-70mai/loader.hh"
-#include "qml_trip.hh"
 
 using namespace mgps::library;
 using namespace mgps::library::track;
@@ -35,7 +35,7 @@ void load_library(std::string const& dirname, trip& current_trip) {
 	auto library = builder.build(gap);
 
 	size_t strides{}, clips{}, segments{}, points{};
-	bool no_trip = true;
+	int skipped = 0;
 	for (auto const& trip : library) {
 		strides += trip.strides.size();
 		segments += trip.plot.segments.size();
@@ -45,9 +45,9 @@ void load_library(std::string const& dirname, trip& current_trip) {
 		for (auto& segment : trip.plot.segments) {
 			points += segment.points.size();
 		}
-		if (no_trip && !trip.strides.empty() && trip.plot.has_points()) {
+		if (skipped < 1 && !trip.strides.empty() && trip.plot.has_points()) {
 			current_trip = trip;
-			no_trip = false;
+			++skipped;
 		}
 	}
 
@@ -70,21 +70,12 @@ void load_library(std::string const& dirname, trip& current_trip) {
 	         << pl{points, "point"};
 }
 
-namespace mGPS {
-	void qmlRegisterTypes(const char* url, int major, int minor) {
-		QmlTrip::qmlRegisterType(url, major, minor);
-		::qmlRegisterType<AppWindow>(url, major, minor, "AppWindow");
-	}
-
-	void qmlRegisterTypes() { qmlRegisterTypes("mGPS", 1, 0); }
-}  // namespace mGPS
-
 int main(int argc, char* argv[]) {
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	QGuiApplication app(argc, argv);
 
-	mGPS::qmlRegisterTypes();
+	mgps::qmlRegisterTypes();
 
 	QCommandLineParser parser;
 	QCommandLineOption DCIM("dcim", "Set the location of directory with clips.",
@@ -100,7 +91,7 @@ int main(int argc, char* argv[]) {
 		load_library(parser.value(DCIM).toUtf8().toStdString(), current_trip);
 	}
 
-	mGPS::QmlTrip trip{};
+	mgps::declarative::QmlTrip trip{};
 	trip.setTrip(&current_trip);
 
 	QQmlApplicationEngine engine;
