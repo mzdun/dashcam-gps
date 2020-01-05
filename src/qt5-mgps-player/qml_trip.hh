@@ -5,6 +5,7 @@
 #include <QGeoPath>
 #include <QGeoRectangle>
 #include <QObject>
+#include <QUrl>
 #include "mgps/library.hh"
 
 namespace mGPS {
@@ -25,6 +26,8 @@ namespace mGPS {
 		Q_PROPERTY(QGeoCoordinate carPosition READ carPosition NOTIFY
 		               carPositionChanged)
 		Q_PROPERTY(QVariantList segments READ segments NOTIFY segmentsChanged)
+		Q_PROPERTY(QUrl clipSource READ clipSource NOTIFY tripChanged)
+		Q_PROPERTY(int clipOffset READ clipOffset NOTIFY tripChanged)
 	public:
 		QmlTrip();
 
@@ -42,6 +45,9 @@ namespace mGPS {
 		QString playbackString() const;
 		QString durationString() const;
 		QString timelineString() const;
+
+		QUrl clipSource() const;
+		int clipOffset() const;
 
 		void setTrip(mgps::library::trip const* trip);
 

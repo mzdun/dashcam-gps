@@ -65,6 +65,41 @@ namespace mGPS {
 		return QString::fromStdString(ostr.str());
 	}
 
+	mgps::library::video::file const* random_clip(
+	    mgps::library::trip const* trip) {
+		if (!trip) return nullptr;
+
+		auto const& stride = trip->strides[1];
+
+		auto b = begin(stride.clips);
+		auto e = end(stride.clips);
+		auto const& clip = *(b + distance(b, e) / 2);
+		return &clip;
+	}
+
+	QUrl QmlTrip::clipSource() const {
+		auto clip = random_clip(trip_);
+		if (clip) {
+			return QUrl::fromLocalFile(
+			    QString::fromStdString(clip->filename.string()));
+		}
+		return {};
+	}
+
+	int QmlTrip::clipOffset() const {
+		auto clip = random_clip(trip_);
+		if (clip) {
+			static bool once = true;
+			if (once) {
+				once = false;
+				qDebug() << "stride:" << trip_->strides[1].offset.count()
+				         << "clip:" << clip->offset.count();
+			}
+			return int((clip->offset + trip_->strides[1].offset).count());
+		}
+		return {};
+	}
+
 	void QmlTrip::setTrip(mgps::library::trip const* trip) {
 		trip_ = trip;
 
