@@ -11,6 +11,8 @@ namespace mgps::track {
 			    [](point const& pt) -> point const& { return pt; });
 		}
 
+		gps_point travel_to_position(travel_ms, bool = true) const noexcept;
+
 		template <typename Point, typename Filter>
 		boundary_type<Point> boundary_box_impl(Filter pred) const noexcept {
 			boundary_type<Point> b{};

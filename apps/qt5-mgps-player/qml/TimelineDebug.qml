@@ -1,7 +1,7 @@
 import QtQuick 2.12
 
 Rectangle {
-    height: 30
+    height: debug.height
     width: debug.width
 
     Rectangle {

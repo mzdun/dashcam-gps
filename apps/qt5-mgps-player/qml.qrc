@@ -7,5 +7,6 @@
         <file>img/icon.png</file>
         <file>qml/ProgressControl.qml</file>
         <file>qml/TimelineDebug.qml</file>
+        <file>qml/Speedometer.qml</file>
     </qresource>
 </RCC>

@@ -21,5 +21,6 @@ namespace mgps::track {
 			}
 			return result;
 		}
+		gps_point travel_to_position(travel_ms, bool) const noexcept;
 	};
 }  // namespace mgps::track

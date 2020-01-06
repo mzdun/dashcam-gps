@@ -8,5 +8,6 @@ namespace mgps::video {
 		ch::milliseconds duration;
 		std::vector<file> clips;
 		std::vector<gap> jumps;
+		travel_ms playback_to_travel(playback_ms) const noexcept;
 	};
 }  // namespace mgps::video

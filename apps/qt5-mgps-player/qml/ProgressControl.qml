@@ -5,7 +5,7 @@ import QtQuick.Controls.Styles 1.4
 Rectangle {
     id: root
     color: "transparent"
-    height: 30
+    height: current.height
 
     Rectangle {
         id: background

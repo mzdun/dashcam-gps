@@ -50,13 +50,15 @@ namespace mgps::declarative {
 
 		playback_ = millis;
 
-		auto const new_timeline = playbackToTimeline(millis);
+		auto const new_timeline = playbackToTravel(millis);
 		auto const emit_timeline = new_timeline != timeline_;
 		timeline_ = new_timeline;
 
-		auto const new_position = timelineToPosition(new_timeline);
+		auto const [new_position, new_speed] = travelToPosition(new_timeline);
 		auto const emit_position = new_position != car_position_;
 		car_position_ = new_position;
+		auto const emit_speed = new_speed != car_speed_;
+		car_speed_ = new_speed;
 
 		emit playbackChanged();
 		if (forced || floor<seconds>(playback_) != old_playback)
@@ -65,6 +67,7 @@ namespace mgps::declarative {
 		if (forced || floor<seconds>(timeline_) != old_timeline)
 			emit timelineStringChanged();
 		if (forced || emit_position) emit carPositionChanged();
+		if (forced || emit_speed) emit carSpeedChanged();
 	}
 
 	/*********************************************************************
@@ -83,7 +86,7 @@ namespace mgps::declarative {
 	}
 
 	QDateTime QmlDrive::timeline() const noexcept {
-		auto const world = timelineToLocal(timeline_);
+		auto const world = travelToLocal(timeline_);
 		auto const secs = floor<seconds>(world);
 		auto const date = floor<days>(secs);
 		auto const time = secs - date;
@@ -110,7 +113,7 @@ namespace mgps::declarative {
 
 	QString QmlDrive::timelineString() const {
 		std::ostringstream ostr;
-		ostr << floor<seconds>(timelineToLocal(timeline_));
+		ostr << floor<seconds>(travelToLocal(timeline_));
 		return QString::fromStdString(ostr.str());
 	}
 
@@ -165,58 +168,26 @@ namespace mgps::declarative {
 		return size_t(playlist->currentIndex());
 	}
 
-	travel_ms QmlDrive::playbackToTimeline(playback_ms millis) const {
+	travel_ms QmlDrive::playbackToTravel(playback_ms millis) const {
 		if (drive_) {
-			auto it = std::upper_bound(
-			    begin(drive_->playlist.jumps), end(drive_->playlist.jumps),
-			    video::gap{millis, {}}, [](auto const& lhs, auto const& rhs) {
-				    return lhs.video_chunk_start < rhs.video_chunk_start;
-			    });
-			if (it != begin(drive_->playlist.jumps)) {
-				auto const& jump = *std::prev(it);
-				return jump.travel_fix + (millis - jump.video_chunk_start);
-			}
+			return drive_->playlist.playback_to_travel(millis);
 		}
 		return travel_ms{millis.time_since_epoch()};
 	}
 
-	local_milliseconds QmlDrive::timelineToLocal(travel_ms travel_time) const {
-		if (drive_) return drive_->start + travel_time.time_since_epoch();
-		return local_milliseconds{travel_time.time_since_epoch()};
+	local_milliseconds QmlDrive::travelToLocal(travel_ms travel_time) const {
+		if (drive_) return drive_->travel_to_local(travel_time);
+
+		// without the drive start time, any answer here is wrong; here's one of
+		// them: 1970-01-01 00:00:00
+		return {};
 	}
 
-	QGeoCoordinate QmlDrive::timelineToPosition(
+	std::pair<QGeoCoordinate, track::speed> QmlDrive::travelToPosition(
 	    mgps::travel_ms drive_millis) const {
 		if (!drive_) return {};
 
-		// TODO: support drives w/out GPS
-		drive_millis -= drive_->trace.offset.time_since_epoch();
-		auto it_line = std::upper_bound(begin(drive_->trace.lines),
-		                                end(drive_->trace.lines),
-		                                timeline_item{drive_millis, {}},
-		                                [](auto const& lhs, auto const& rhs) {
-			                                return lhs.offset < rhs.offset;
-		                                });
-
-		if (it_line != begin(drive_->trace.lines)) std::advance(it_line, -1);
-		if (it_line == end(drive_->trace.lines)) return {};
-
-		auto const& line = *it_line;
-		auto const time = [=, offset = line.offset]() {
-			track::gps_point out{};
-			out.offset = drive_millis - offset;
-			return out;
-		}();
-
-		auto it = std::upper_bound(begin(line.points), end(line.points), time,
-		                           [](auto const& lhs, auto const& rhs) {
-			                           return lhs.offset < rhs.offset;
-		                           });
-
-		if (it != begin(line.points)) std::advance(it, -1);
-		if (it == end(line.points)) return {};
-
-		auto const& pt = *it;
-		return {pt.lat.as_float(), pt.lon.as_float()};
+		auto pt = drive_->trace.travel_to_position(drive_millis);
+		return {{pt.lat.as_float(), pt.lon.as_float()}, pt.kmph};
 	}
 }  // namespace mgps::declarative

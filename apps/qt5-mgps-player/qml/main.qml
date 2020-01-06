@@ -42,6 +42,14 @@ AppWindow {
             bottom: player.top
         }
 
+        Speedometer {
+            anchors {
+                right: parent.right
+                top: parent.top
+                margins: 10
+            }
+        }
+
         TimelineDebug {
             anchors {
                 right: parent.right
