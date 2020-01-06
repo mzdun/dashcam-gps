@@ -21,5 +21,9 @@ Rectangle {
         onError: console.error(error, errorString)
     }
 
+    focus: true
+    Keys.onLeftPressed: mediaPlayer.seek(mediaPlayer.position - 5000)
+    Keys.onRightPressed: mediaPlayer.seek(mediaPlayer.position + 5000)
+
     Component.onCompleted: currentDrive.playerAvailable(mediaPlayer)
 }

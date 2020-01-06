@@ -13,7 +13,7 @@ namespace mgps::declarative {
 		drive_ = drive;
 
 		if (drive_) {
-			populateJumpsAndDuration();
+			duration_ = drive_->playlist.duration;
 			populateLines();
 		} else {
 			duration_ = {};
@@ -144,22 +144,6 @@ namespace mgps::declarative {
 
 		setPlayback(0, true);
 		player_->play();
-	}
-
-	void QmlDrive::populateJumpsAndDuration() {
-		duration_ = drive_->playlist.duration;
-		/*milliseconds timeline{};
-		duration_ = {};
-
-		jumps_.clear();
-		jumps_.reserve(drive_->strides.size());
-		for (auto const& slice : drive_->strides) {
-		    if (timeline != slice.offset) {
-		        jumps_.push_back({duration_, slice.offset - duration_});
-		    }
-		    duration_ += slice.duration;
-		    timeline = slice.offset + slice.duration;
-		}*/
 	}
 
 	void QmlDrive::populateLines() {

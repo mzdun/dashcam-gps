@@ -5,5 +5,7 @@
         <file>qml/VideoPlayer.qml</file>
         <file>img/marker.svg</file>
         <file>img/icon.png</file>
+        <file>qml/ProgressControl.qml</file>
+        <file>qml/TimelineDebug.qml</file>
     </qresource>
 </RCC>

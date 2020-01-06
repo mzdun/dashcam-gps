@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 	using namespace mgps;
 
 	if (argc < 2) {
-		std::cerr << "playground <dir> [<filename>]\n";
+		std::cerr << "html+svg <dir> [<filename>]\n";
 		return 1;
 	}
 

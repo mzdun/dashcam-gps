@@ -63,7 +63,6 @@ namespace mgps::declarative {
 	private:
 		using milliseconds = std::chrono::milliseconds;
 		void populatePlaylist();
-		void populateJumpsAndDuration();
 		void populateLines();
 		size_t currentIndex();
 		travel_ms playbackToTimeline(playback_ms) const;

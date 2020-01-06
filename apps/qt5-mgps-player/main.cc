@@ -43,7 +43,7 @@ void load_library(std::string const& dirname, drive& current_drive) {
 		for (auto& line : drive.trace.lines) {
 			points += line.points.size();
 		}
-		if (skipped < 2 && !drive.playlist.clips.empty() &&
+		if (skipped < 3 && !drive.playlist.clips.empty() &&
 		    drive.trace.has_points()) {
 			current_drive = drive;
 			++skipped;

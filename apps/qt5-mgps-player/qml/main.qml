@@ -10,11 +10,7 @@ AppWindow {
     height: 864
     iconSource: ":/img/icon.png"
 
-    title: qsTr("Dashcam GPS Viewer") + " | " +
-           currentDrive.playbackString + " » " +
-           currentDrive.durationString + " | " +
-           currentDrive.timelineString + " | " +
-           currentDrive.carPosition
+    title: qsTr("Dashcam GPS Viewer")
 
     Connections {
         id: scaler
@@ -45,12 +41,28 @@ AppWindow {
             top: parent.top
             bottom: player.top
         }
+
+        TimelineDebug {
+            anchors {
+                right: parent.right
+                bottom: parent.bottom
+            }
+        }
     }
 
     VideoPlayer {
         id: player
         property int calculatedHight: parent.width / scaler.frame.width * scaler.frame.height
         height: calculatedHight > parent.height / 2 ? parent.height / 2 : calculatedHight
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+    }
+
+    ProgressControl {
+        id: progress
         anchors {
             left: parent.left
             right: parent.right
