@@ -1,16 +1,15 @@
 #pragma once
 #include <mgps/isom.hh>
-#include <mgps/library.hh>
-
+#include <mgps/track/point.hh>
+#include <mgps/track/speed.hh>
+#include <mgps/video/file.hh>
 #include <vector>
 
 namespace mgps::isom::mai {
-	using namespace library;
-
 	constexpr auto GPS_box = synth_type("GPS ");
 
 	struct clip_filename_info {
-		library::video::clip type{library::video::clip::unrecognized};
+		video::clip type{video::clip::unrecognized};
 		local_milliseconds ts{};
 	};
 

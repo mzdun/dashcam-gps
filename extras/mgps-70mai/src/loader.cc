@@ -1,10 +1,12 @@
-#include "mgps-70mai/loader.hh"
-
-#include <algorithm>
 #include <cmath>
+#include <mgps-70mai/loader.hh>
 #include <mgps/cstdio.hh>
+#include <mgps/drive.hh>
+#include <mgps/track/trace.hh>
+#include <mgps/video/playlist.hh>
+#include <numeric>
 
-namespace mgps::library::mai {
+namespace mgps::mai {
 	namespace {
 		struct file_reader_data {
 			std::chrono::milliseconds duration;
@@ -20,154 +22,143 @@ namespace mgps::library::mai {
 			return true;
 		}
 
-		template <typename FileInfo>
-		void copy_strides(std::vector<std::vector<FileInfo>>& interim_trip,
-		                  library::trip& trip) {
-			trip.strides.reserve(interim_trip.size());
+		local_milliseconds copy_chunks(
+		    std::vector<std::vector<file_info>>& interim_drive,
+		    video::playlist& playlist) {
+			playlist.jumps.reserve(interim_drive.size());
+			playlist.clips.reserve(std::accumulate(
+			    begin(interim_drive), end(interim_drive), size_t{},
+			    [](size_t prev, auto const& interim_chunk) {
+				    return interim_chunk.size() + prev;
+			    }));
 
-			for (auto& interim_stride : interim_trip) {
-				trip.strides.emplace_back();
-				auto& stride = trip.strides.back();
+			travel_ms travel{};
+			playback_ms playback{};
+			auto const travel_start =
+			    [](std::vector<std::vector<file_info>>& interim_drive) {
+				    for (auto const& interim_chunk : interim_drive) {
+					    if (interim_chunk.empty()) continue;
+					    return interim_chunk.front().date_time;
+				    }
+				    return local_milliseconds{};
+			    }(interim_drive);
 
-				stride.clips.reserve(interim_stride.size());
+			for (auto& interim_chunk : interim_drive) {
+				playlist.jumps.push_back({playback, travel});
 
-				for (auto& interim_clip : interim_stride) {
-					stride.clips.emplace_back();
-					auto& clip = stride.clips.back();
+				for (auto& interim_clip : interim_chunk) {
+					playlist.clips.emplace_back();
+					auto& clip = playlist.clips.back();
 
-					// here, "offset" is not yet the offset from the start of
-					// the stride, but the time and date taken from file name;
-					// this will change, as we will start bubbling the offset
-					// towards the trip
+					playback += interim_clip.duration;
+					travel = travel_ms{interim_clip.date_time - travel_start};
 
-					clip.offset = interim_clip.date_time.time_since_epoch();
+					clip.offset = travel;
 					clip.duration = interim_clip.duration;
 					clip.type = interim_clip.type;
 					clip.filename = std::move(interim_clip.filename);
 
-					// same here: for now, a point's time is it's absolute time
-					// within local calendar and it will be later relative to
-					// the trip's date
 					for (auto& point : interim_clip.points)
-						point.time += clip.offset;
+						point.offset += clip.offset.time_since_epoch();
 				}
-
-				// the calendar information is propagated to the stride,
-				// while clips are getting relative to the stride
-				auto const stride_offset = stride.clips.front().offset;
-				for (auto& clip : stride.clips)
-					clip.offset -= stride_offset;
-				auto const& last_clip = stride.clips.back();
-
-				stride.offset = stride_offset;
-				stride.duration = last_clip.offset + last_clip.duration;
 			}
 
-			// the calendar information is propagated to the trip, while strides
-			// and points are getting relative to the trip
-			auto const trip_offset = trip.strides.front().offset;
-			for (auto& stride : trip.strides)
-				stride.offset -= trip_offset;
-			auto const& last_stride = trip.strides.back();
-
-			// and we are finally home, with trip holding calendar info and
-			// everything else being relative to its parent
-			trip.start = local_milliseconds{trip_offset};
-			trip.duration = last_stride.offset + last_stride.duration;
+			playlist.duration = playback.time_since_epoch();
+			return travel_start;
 		}
 
-		bool detached(track::gps_data const& previous,
-		              track::gps_data const& current) {
-			return (current.time - previous.time) > ch::seconds{1};
+		bool detached(track::gps_point const& previous,
+		              track::gps_point const& current) {
+			return (current.offset - previous.offset) > ch::seconds{1};
 		}
 
-		template <typename FileInfo>
-		void copy_points(std::vector<std::vector<FileInfo>>& interim_trip,
-		                 library::trip& trip) {
+		void copy_points(std::vector<std::vector<file_info>>& interim_drive,
+		                 track::trace& trace,
+		                 travel_ms const& start) {
 			{
-				size_t reserve_for_segments{};
-				track::gps_data const* previous = nullptr;
+				size_t reserve_for_lines{};
+				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_stride : interim_trip) {
-					for (auto& interim_clip : interim_stride) {
+				for (auto& interim_chunk : interim_drive) {
+					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (!previous || detached(*previous, point)) {
-								++reserve_for_segments;
+								++reserve_for_lines;
 							}
 							previous = &point;
 						}
 					}
 				}
 
-				trip.plot.segments.reserve(reserve_for_segments);
+				trace.lines.reserve(reserve_for_lines);
 			}
 
 			{
-				size_t reserve_for_segment{};
-				track::gps_data const* previous = nullptr;
+				size_t reserve_for_line{};
+				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_stride : interim_trip) {
-					for (auto& interim_clip : interim_stride) {
+				for (auto& interim_chunk : interim_drive) {
+					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (previous && detached(*previous, point)) {
-								trip.plot.segments.emplace_back();
-								trip.plot.segments.back().points.reserve(
-								    reserve_for_segment);
-								reserve_for_segment = 0;
+								trace.lines.emplace_back();
+								trace.lines.back().points.reserve(
+								    reserve_for_line);
+								reserve_for_line = 0;
 							}
 							previous = &point;
-							++reserve_for_segment;
+							++reserve_for_line;
 						}
 					}
 				}
 
-				if (reserve_for_segment) {
-					trip.plot.segments.emplace_back();
-					trip.plot.segments.back().points.reserve(
-					    reserve_for_segment);
+				if (reserve_for_line) {
+					trace.lines.emplace_back();
+					trace.lines.back().points.reserve(reserve_for_line);
 				}
 			}
 			{
-				size_t segment_index{};
-				track::gps_data const* previous = nullptr;
+				size_t line_index{};
+				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_stride : interim_trip) {
-					for (auto& interim_clip : interim_stride) {
+				for (auto& interim_chunk : interim_drive) {
+					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (previous && detached(*previous, point)) {
-								++segment_index;
+								++line_index;
 							}
 							previous = &point;
 
-							auto& segment =
-							    trip.plot.segments[segment_index].points;
-							if (segment.empty() ||
-							    segment.back().time != point.time)
-								segment.push_back(point);
+							auto& line = trace.lines[line_index].points;
+							if (line.empty() ||
+							    line.back().offset != point.offset)
+								line.push_back(point);
 							else
-								segment.back() = point;
+								line.back() = point;
 						}
 					}
 				}
 			}
 
-			for (auto& segment : trip.plot.segments) {
-				segment.offset = segment.points.front().time;
-				for (auto& point : segment.points)
-					point.time -= segment.offset;
-				segment.duration = segment.points.back().time;
+			for (auto& line : trace.lines) {
+				using namespace std::literals;
+				line.offset = travel_ms{line.points.front().offset};
+				line.duration =
+				    line.points.empty() ? 0ms : (line.points.size() - 1) * 1s;
+				for (auto& point : line.points)
+					point.offset -= line.offset.time_since_epoch();
 			}
 
-			if (trip.plot.segments.empty()) {
-				trip.plot.offset = trip.start.time_since_epoch();
-				trip.plot.duration = ch::milliseconds{};
+			if (trace.lines.empty()) {
+				trace.offset = start;
+				trace.duration = ch::milliseconds{};
 			} else {
-				trip.plot.offset = trip.plot.segments.front().offset;
-				for (auto& segment : trip.plot.segments)
-					segment.offset -= trip.plot.offset;
-				auto& last_segment = trip.plot.segments.back();
-				trip.plot.duration =
-				    last_segment.offset + last_segment.duration;
+				trace.offset = trace.lines.front().offset;
+				for (auto& line : trace.lines)
+					line.offset -= trace.offset.time_since_epoch();
+				auto& last_line = trace.lines.back();
+				trace.duration =
+				    last_line.offset.time_since_epoch() + last_line.duration;
 			}
 		}
 	}  // namespace
@@ -175,7 +166,7 @@ namespace mgps::library::mai {
 	bool loader::add_file(fs::path const& file_name) noexcept {
 		using namespace isom;
 		using namespace isom::mai;
-		using namespace library::video;
+		using namespace video;
 
 		auto info = get_filename_info(file_name.filename().string());
 		if (info.type == clip::unrecognized) return false;
@@ -195,11 +186,11 @@ namespace mgps::library::mai {
 		auto const new_size = static_cast<size_t>(
 		    std::distance(std::begin(data.points), new_end));
 
-		std::vector<track::gps_data> points;
+		std::vector<track::gps_point> points;
 		points.reserve(new_size);
 		std::transform(std::begin(data.points), new_end,
 		               std::back_inserter(points),
-		               [](gps_point& in) -> track::gps_data {
+		               [](gps_point& in) -> track::gps_point {
 			               return {{in.lat, in.lon}, in.kmph, in.pos};
 		               });
 		interim_.push_back(
@@ -221,7 +212,7 @@ namespace mgps::library::mai {
 		}
 	}
 
-	std::vector<trip> loader::build(ch::milliseconds max_stride_gap) {
+	std::vector<drive> loader::build(ch::milliseconds max_chunk_gap) {
 		std::sort(begin(interim_), end(interim_),
 		          [](auto const& lhs, auto const& rhs) {
 			          return lhs.date_time < rhs.date_time;
@@ -236,11 +227,11 @@ namespace mgps::library::mai {
 		prev = local_milliseconds{};
 
 		// vector - vector - vector - file_info
-		// library - trip - stride - clip
+		// library - drive - chunk - clip
 
 		std::vector<std::vector<std::vector<file_info>>> interim_library{};
 		for (auto& file : interim_) {
-			if ((prev + max_stride_gap) < file.date_time) {
+			if ((prev + max_chunk_gap) < file.date_time) {
 				interim_library.emplace_back(1);
 			} else if (prev < file.date_time) {
 				interim_library.back().emplace_back();
@@ -249,17 +240,18 @@ namespace mgps::library::mai {
 			interim_library.back().back().emplace_back(std::move(file));
 		}
 
-		std::vector<trip> library;
+		std::vector<drive> library;
 		library.reserve(interim_library.size());
-		for (auto& interim_trip : interim_library) {
+		for (auto& interim_drive : interim_library) {
 			library.emplace_back();
-			auto& trip = library.back();
+			auto& drive = library.back();
 
-			copy_strides(interim_trip, trip);
-			copy_points(interim_trip, trip);
+			drive.start = copy_chunks(interim_drive, drive.playlist);
+			auto const travel_start = travel_ms{drive.start.time_since_epoch()};
+			copy_points(interim_drive, drive.trace, travel_start);
 		}
 
 		interim_.clear();
 		return library;
 	}
-}  // namespace mgps::library::mai
+}  // namespace mgps::mai

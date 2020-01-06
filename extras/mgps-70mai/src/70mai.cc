@@ -13,16 +13,18 @@
 #endif
 
 #include <mgps-70mai/70mai.hh>
+#include <mgps/isom.hh>
+#include <mgps/track/point.hh>
 
 namespace mgps::isom::mai {
 	namespace {
 		static constexpr auto filenames = ctll::fixed_string{
-			"^"
-			"([A-Za-z]{2})"                   // NO, EV, PA
-			"([0-9]{4})([0-9]{2})([0-9]{2})"  // YYYYMMDD
-			"-"
-			"([0-9]{2})([0-9]{2})([0-9]{2})"  // HHMMSS
-			"-.*$"};
+		    "^"
+		    "([A-Za-z]{2})"                   // NO, EV, PA
+		    "([0-9]{4})([0-9]{2})([0-9]{2})"  // YYYYMMDD
+		    "-"
+		    "([0-9]{2})([0-9]{2})([0-9]{2})"  // HHMMSS
+		    "-.*$"};
 
 		template <typename Number>
 		bool from_chars(std::string_view chars, Number& value) {
@@ -52,11 +54,12 @@ namespace mgps::isom::mai {
 			return static_cast<track::NESW>(std::numeric_limits<Int>::max());
 		}
 
-		track::coord make_coord(uint32_t deg_min_1000, char direction) {
+		track::coordinate make_coord(uint32_t deg_min_1000, char direction) {
 			auto const full_degrees =
-				(deg_min_1000 / 100'000ull) * track::coord::precision::den;
+			    (deg_min_1000 / 100'000ull) * track::coordinate::precision::den;
 			auto const minutes_fraction = (deg_min_1000 % 100'000ull) *
-										  track::coord::precision::den / 60'000;
+			                              track::coordinate::precision::den /
+			                              60'000;
 			return {full_degrees + minutes_fraction, NESW(direction)};
 		}
 
@@ -164,7 +167,7 @@ namespace mgps::isom::mai {
 		if (!parts) return {};
 
 		auto const clip_type = [](std::string_view type) {
-			using namespace library::video;
+			using namespace video;
 #define UP(C) std::toupper(static_cast<unsigned char>(C))
 #define TYPE_IS(L1, L2) ((UP(type[0]) == L1) && (UP(type[1]) == L2))
 			if (TYPE_IS('N', 'O')) return clip::normal;

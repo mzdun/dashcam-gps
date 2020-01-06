@@ -30,7 +30,7 @@ namespace mgps::isom::cstdio {
 			static constexpr auto max_len = std::numeric_limits<size_t>::max();
 			if (max_len > length) {
 				return std::fread(buffer, 1, static_cast<size_t>(length),
-								  bits_.get());
+				                  bits_.get());
 			}
 
 			uint64_t read{};
@@ -41,7 +41,7 @@ namespace mgps::isom::cstdio {
 				if (static_cast<uint64_t>(chunk) > length)
 					chunk = static_cast<size_t>(length);
 				auto const actualy_read =
-					std::fread(data, 1, chunk, bits_.get());
+				    std::fread(data, 1, chunk, bits_.get());
 				if (!actualy_read) break;
 				read += actualy_read;
 				data += actualy_read;
