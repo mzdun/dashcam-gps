@@ -19,6 +19,7 @@ namespace mgps {
 		static constexpr char string_short[] = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@";
 		static constexpr char string_long[] = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.@PROJECT_VERSION_TWEAK@";
 		static constexpr char stability[] = "@PROJECT_VERSION_STABILITY@"; // or "-beta", "-rc3", "", ...
+		static constexpr char string_ui[] = "@PROJECT_VERSION@@PROJECT_VERSION_STABILITY@";
 
 		static constexpr unsigned major = @PROJECT_VERSION_MAJOR@;
 		static constexpr unsigned minor = @PROJECT_VERSION_MINOR@;

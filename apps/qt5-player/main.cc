@@ -3,9 +3,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QSettings>
 #include <cinttypes>
 #include <mgps/version.hh>
-
 #include "declarative/QmlDrive.hh"
 #include "declarative/declarative.hh"
 #include "mgps-70mai/loader.hh"
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 	app.setOrganizationName("midnightBITS");
 	app.setOrganizationDomain("midnightbits.com");
 	app.setApplicationName("Dashcam GPS Viewer");
-	app.setApplicationVersion(mgps::version::string_short);
+	app.setApplicationVersion(mgps::version::string_ui);
 
 	mgps::qmlRegisterTypes();
 
@@ -85,9 +85,21 @@ int main(int argc, char* argv[]) {
 	parser.addOption(DCIM);
 	parser.parse(app.arguments());
 
-	drive current_drive{};
 	if (parser.isSet(DCIM)) {
-		load_library(parser.value(DCIM).toUtf8().toStdString(), current_drive);
+		QSettings settings;
+		settings.beginGroup(mgps::version::string_short);
+		settings.setValue("library", parser.value(DCIM));
+	}
+
+	drive current_drive{};
+	{
+		QSettings settings;
+		settings.beginGroup(mgps::version::string_short);
+		auto dir = settings.value("library").toString();
+		if (!dir.isEmpty()) {
+			load_library(parser.value(DCIM).toUtf8().toStdString(),
+			             current_drive);
+		}
 	}
 
 	mgps::declarative::QmlDrive drive{};
