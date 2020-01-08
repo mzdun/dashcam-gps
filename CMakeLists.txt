@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(dashcam-gps
     DESCRIPTION "Library and player for movie clips with accompanying GPS info"
-    VERSION 0.1.0
+    VERSION 0.1.0.0
     LANGUAGES CXX)
+
+set(PROJECT_VERSION_STABILITY "-alpha") # or "-beta", or "-rc1", or "-rc2", or ""
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,5 +26,5 @@ add_subdirectory(apps)
 
 set_target_properties(mgps PROPERTIES FOLDER "Core")
 set_target_properties(mgps-70mai PROPERTIES FOLDER "Core/Extras")
-set_target_properties(html+svg qt5-mgps-player PROPERTIES FOLDER "Apps")
+set_target_properties(html+svg qt5-player PROPERTIES FOLDER "Apps")
 set_target_properties(Continuous Experimental Nightly NightlyMemoryCheck PROPERTIES FOLDER "External/CTRE")

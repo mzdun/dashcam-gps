@@ -1,6 +1,8 @@
 include(warnings)
 include(dir_filters)
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.in.hh" "${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh" @ONLY)
+
 set(MGPS_SOURCES
     mgps/clocks.cc
     mgps/cstdio.cc
@@ -31,7 +33,7 @@ set(MGPS_SOURCES
 )
 add_library(mgps STATIC ${MGPS_SOURCES})
 
-target_include_directories(mgps PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(mgps date::date)
 
 if (NOT MSVC)

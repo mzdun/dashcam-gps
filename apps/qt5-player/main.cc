@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <cinttypes>
+#include <mgps/version.hh>
 
 #include "declarative/QmlDrive.hh"
 #include "declarative/declarative.hh"
@@ -68,6 +69,10 @@ int main(int argc, char* argv[]) {
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	QGuiApplication app(argc, argv);
+	app.setOrganizationName("midnightBITS");
+	app.setOrganizationDomain("midnightbits.com");
+	app.setApplicationName("Dashcam GPS Viewer");
+	app.setApplicationVersion(mgps::version::string_short);
 
 	mgps::qmlRegisterTypes();
 

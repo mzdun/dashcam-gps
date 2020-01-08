@@ -26,13 +26,19 @@ The `extras\mgps-70mai` reads the MP4 files produced by 70mai dash cam and produ
 
 The `examples\html+svg` is an example taking a library (provided by the `mgps-70mai`) and printing out a HTML sheet of all the trips. The "+svg" part of the name comes from embedded `<svg>` images built from GPS data.
 
-#### mGPS-player (Qt5)
+#### dashboard-gps-player (Qt5)
 
-The `src\qt5-mgps-player` aims at presenting the GPS data over a map and animating a marker in sync with the video.
+The `src\qt5-player` aims at presenting the GPS data over a map and animating a marker in sync with the video.
 
-#### mGPS-player (Android)
+#### dashboard-gps-player (UWP)
 
-The `src\android-mgps-player` aims at presenting the clips using a DCIM directory directly, without downloading the clips to the PC first.
+The `src\uwp-player` aims to be more integrated into Windows 10, than any Qt app could.
+
+_This app is only planned and scheduled **after** Qt5 application is ready-ish._
+
+#### dashboard-gps-player (Android)
+
+The `src\android-player` aims at presenting the clips using a DCIM directory directly, without downloading the clips to the PC first.
 
 _This app is only planned and scheduled **after** Qt5 application is ready-ish._
 

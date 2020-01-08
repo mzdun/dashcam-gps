@@ -1,0 +1,43 @@
+#include <QtCore/qconfig.h>
+#include <Windows.h>
+#include "mgps/version.hh"
+
+#define STRINGIFY1(x) #x
+#define STRINGIFY(x) STRINGIFY1(x)
+
+#define RC_APPLICATION_NAME "Dashcam GPS Viewer"
+#define RC_ORGANISATION "midnightBITS"
+#define RC_MODULE MGPS_PROJECT_NAME "-player"
+#define RC_VERSION_STRING \
+	MGPS_VERSION_STR \
+	"-qt" STRINGIFY(QT_VERSION_MAJOR) "." STRINGIFY(QT_VERSION_MINOR) \
+	MGPS_VERSION_STABILITY
+#define RC_VERSION MGPS_VERSION_MAJOR,MGPS_VERSION_MINOR,MGPS_VERSION_PATCH,MGPS_VERSION_BUILD
+
+100 ICON "qt5-player.ico"
+
+VS_VERSION_INFO VERSIONINFO
+	FILEVERSION    RC_VERSION
+	PRODUCTVERSION RC_VERSION
+	FILETYPE       VFT_APP
+{
+	BLOCK "StringFileInfo"
+	{
+		// U.S. English - Windows, Multilingual
+		BLOCK "040904E4"
+		{
+			VALUE "CompanyName", RC_ORGANISATION
+			VALUE "FileDescription", RC_APPLICATION_NAME
+			VALUE "FileVersion", RC_VERSION_STRING
+			VALUE "InternalName", RC_MODULE
+			VALUE "OriginalFilename", RC_MODULE ".exe"
+			VALUE "ProductName", RC_APPLICATION_NAME
+			VALUE "ProductVersion", RC_VERSION_STRING
+			VALUE "LegalCopyright", "2020 " RC_ORGANISATION
+		}
+	}
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x409, 1252 // 1252 = 0x04E4
+	}
+}
