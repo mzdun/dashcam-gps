@@ -1,12 +1,13 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/main.qml</file>
-        <file>qml/RouteViewer.qml</file>
-        <file>qml/VideoPlayer.qml</file>
-        <file>img/marker.svg</file>
         <file>img/icon.png</file>
-        <file>qml/ProgressControl.qml</file>
-        <file>qml/TimelineDebug.qml</file>
-        <file>qml/Speedometer.qml</file>
+        <file>img/marker.svg</file>
+        <file>qml/main.qml</file>
+        <file>qml/Viewer.qml</file>
+        <file>qml/viewer/ProgressControl.qml</file>
+        <file>qml/viewer/RouteViewer.qml</file>
+        <file>qml/viewer/Speedometer.qml</file>
+        <file>qml/viewer/TimelineDebug.qml</file>
+        <file>qml/viewer/VideoPlayer.qml</file>
     </qresource>
 </RCC>
