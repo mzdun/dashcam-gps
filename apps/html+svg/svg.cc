@@ -7,7 +7,7 @@
 #include <iostream>
 #include <mgps-70mai/loader.hh>
 #include <mgps/cstdio.hh>
-#include <mgps/drive.hh>
+#include <mgps/trip.hh>
 #include <optional>
 
 #include "debug.hh"
@@ -137,25 +137,25 @@ namespace mgps::svg {
 )";
 	}
 
-	void trace_drive(std::ostream& out, mgps::drive const& drive) {
+	void trace_trip(std::ostream& out, mgps::trip const& trip) {
 		size_t gpses{};
-		for (auto& line : drive.trace.lines)
+		for (auto& line : trip.trace.lines)
 			gpses += line.points.size();
 		ch::milliseconds driven{};
 		uint64_t dist{};
-		for (auto& line : drive.trace.lines) {
+		for (auto& line : trip.trace.lines) {
 			driven += line.duration;
 			dist += line.distance();
 		}
 
-		auto const start_hour = drive.start - floor<date::days>(drive.start);
+		auto const start_hour = trip.start - floor<date::days>(trip.start);
 
 		out << R"(
 <h2>)" << floor<ch::minutes>(start_hour)
 		    << R"(</h2>
 
 )";
-		svg_trace(out, drive.trace);
+		svg_trace(out, trip.trace);
 
 		out << R"(
 
@@ -163,11 +163,11 @@ namespace mgps::svg {
 
 <table class="info">
 <tr><th>Duration:</th><td>)"
-		    << floor<ch::seconds>(drive.playlist.duration)
+		    << floor<ch::seconds>(trip.playlist.duration)
 		    << "</td></tr>\n<tr><th>Playlist:</th><td>"
-		    << pl{drive.playlist.clips.size(), "clip"}
+		    << pl{trip.playlist.clips.size(), "clip"}
 		    << "</td></tr>\n<tr><th>Plot:</tthd><td>"
-		    << pl{drive.trace.lines.size(), "line"} << " with "
+		    << pl{trip.trace.lines.size(), "line"} << " with "
 		    << pl{gpses, "point"} << "</td></tr>\n<tr><th>Distance:</th><td>"
 		    << double(dist) / 1000.0 << " km";
 		if (driven.count())
@@ -186,7 +186,7 @@ namespace mgps::svg {
 )";
 
 		bool has_millis_in_offset = false;
-		for (auto& clip : drive.playlist.clips) {
+		for (auto& clip : trip.playlist.clips) {
 			if (floor<ch::seconds>(clip.offset) != clip.offset) {
 				has_millis_in_offset = true;
 				break;
@@ -197,7 +197,7 @@ namespace mgps::svg {
 		auto cwd = fs::current_path(ec);
 		auto can_use_proximate = !ec;
 
-		for (auto& clip : drive.playlist.clips) {
+		for (auto& clip : trip.playlist.clips) {
 			out << "<tr><td class=\"num\">";
 			if (has_millis_in_offset)
 				out << clip.offset.time_since_epoch();
@@ -223,7 +223,7 @@ namespace mgps::svg {
 
 )";
 	}
-	void html_trace(std::ostream& out, std::vector<mgps::drive> const& drives) {
+	void html_trace(std::ostream& out, std::vector<mgps::trip> const& trips) {
 		using namespace std::chrono;
 		using namespace date;
 
@@ -276,14 +276,14 @@ a { text-decoration: none }
 )";
 
 		date::local_days prev_date{};
-		for (auto const& drive : drives) {
-			auto const date = floor<days>(drive.start);
+		for (auto const& trip : trips) {
+			auto const date = floor<days>(trip.start);
 
 			if (date != prev_date) {
 				prev_date = date;
 				out << "<h1>" << date << "</h1>\n";
 			}
-			trace_drive(out, drive);
+			trace_trip(out, trip);
 		}
 		out << R"(
 <iframe name="player-page" src="about:blank"></iframe>

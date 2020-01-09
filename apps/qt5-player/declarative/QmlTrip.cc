@@ -1,4 +1,4 @@
-#include "QmlDrive.hh"
+#include "QmlTrip.hh"
 
 #include <QMediaPlaylist>
 #include <QQmlEngine>
@@ -7,13 +7,13 @@ namespace mgps::declarative {
 	using namespace std::chrono;
 	using namespace date;
 
-	QmlDrive::QmlDrive() {}
+	QmlTrip::QmlTrip() {}
 
-	void QmlDrive::setDrive(mgps::drive const* drive) {
-		drive_ = drive;
+	void QmlTrip::setTrip(mgps::trip const* trip) {
+		trip_ = trip;
 
-		if (drive_) {
-			duration_ = drive_->playlist.duration;
+		if (trip_) {
+			duration_ = trip_->playlist.duration;
 			populateLines();
 		} else {
 			duration_ = {};
@@ -22,14 +22,14 @@ namespace mgps::declarative {
 
 		populatePlaylist();
 
-		emit driveChanged();
+		emit tripChanged();
 	}
 
 	/*********************************************************************
 	 *  CALLABLES
 	 */
 
-	void QmlDrive::playerAvailable(QObject* qmlMediaPlayer) {
+	void QmlTrip::playerAvailable(QObject* qmlMediaPlayer) {
 		auto player = qvariant_cast<QMediaPlayer*>(
 		    qmlMediaPlayer->property("mediaObject"));
 		player_ = player;
@@ -40,7 +40,7 @@ namespace mgps::declarative {
 	 *  SETTERS FOR PROPERTIES
 	 */
 
-	void QmlDrive::setPlayback(unsigned long long new_millis, bool forced) {
+	void QmlTrip::setPlayback(unsigned long long new_millis, bool forced) {
 		auto const millis =
 		    milliseconds{new_millis} + getOffset(currentIndex());
 		if (!forced && millis == playback_) return;
@@ -74,10 +74,10 @@ namespace mgps::declarative {
 	 *  GETTERS FOR PROPERTIES
 	 */
 
-	QGeoRectangle QmlDrive::visibleRegion() const noexcept {
-		if (!drive_) return QGeoRectangle{};
+	QGeoRectangle QmlTrip::visibleRegion() const noexcept {
+		if (!trip_) return QGeoRectangle{};
 		static constexpr auto MARGIN = 0.01;
-		auto const bounds = drive_->trace.boundary_box();
+		auto const bounds = trip_->trace.boundary_box();
 		auto const center = bounds.center();
 		auto const width = bounds.width().as_float() + 2 * MARGIN;
 		auto const height = bounds.height().as_float() + 2 * MARGIN;
@@ -85,7 +85,7 @@ namespace mgps::declarative {
 		        width, height};
 	}
 
-	QDateTime QmlDrive::timeline() const noexcept {
+	QDateTime QmlTrip::timeline() const noexcept {
 		auto const world = travelToLocal(timeline_);
 		auto const secs = floor<seconds>(world);
 		auto const date = floor<days>(secs);
@@ -99,19 +99,19 @@ namespace mgps::declarative {
 		              int(hms.seconds().count())}};
 	}
 
-	QString QmlDrive::playbackString() const {
+	QString QmlTrip::playbackString() const {
 		std::ostringstream ostr;
 		ostr << hh_mm_ss{floor<seconds>(playback_).time_since_epoch()};
 		return QString::fromStdString(ostr.str());
 	}
 
-	QString QmlDrive::durationString() const {
+	QString QmlTrip::durationString() const {
 		std::ostringstream ostr;
 		ostr << hh_mm_ss{floor<seconds>(duration_)};
 		return QString::fromStdString(ostr.str());
 	}
 
-	QString QmlDrive::timelineString() const {
+	QString QmlTrip::timelineString() const {
 		std::ostringstream ostr;
 		ostr << floor<seconds>(travelToLocal(timeline_));
 		return QString::fromStdString(ostr.str());
@@ -121,18 +121,18 @@ namespace mgps::declarative {
 	 *  HELPERS
 	 */
 
-	void QmlDrive::populatePlaylist() {
+	void QmlTrip::populatePlaylist() {
 		if (!player_) return;
 		player_->stop();
 
 		using namespace std::chrono;
 		auto offset = playback_ms{};
 
-		if (drive_) {
+		if (trip_) {
 			auto playlist = new QMediaPlaylist(player_);
 
-			offsets_.reserve(drive_->playlist.clips.size());
-			for (auto const& video : drive_->playlist.clips) {
+			offsets_.reserve(trip_->playlist.clips.size());
+			for (auto const& video : trip_->playlist.clips) {
 				auto url = QUrl::fromLocalFile(
 				    QString::fromStdString(video.filename.string()));
 
@@ -149,10 +149,10 @@ namespace mgps::declarative {
 		player_->play();
 	}
 
-	void QmlDrive::populateLines() {
+	void QmlTrip::populateLines() {
 		lines_.clear();
-		lines_.reserve(int(drive_->trace.lines.size()));
-		for (auto const& line : drive_->trace.lines) {
+		lines_.reserve(int(trip_->trace.lines.size()));
+		for (auto const& line : trip_->trace.lines) {
 			QList<QGeoCoordinate> path;
 			path.reserve(int(line.points.size()));
 			for (auto const& pt : line.points)
@@ -161,33 +161,33 @@ namespace mgps::declarative {
 		}
 	}
 
-	size_t QmlDrive::currentIndex() {
+	size_t QmlTrip::currentIndex() {
 		if (!player_) return 0;
 		auto playlist = player_->playlist();
 		if (!playlist) return 0;
 		return size_t(playlist->currentIndex());
 	}
 
-	travel_ms QmlDrive::playbackToTravel(playback_ms millis) const {
-		if (drive_) {
-			return drive_->playlist.playback_to_travel(millis);
+	travel_ms QmlTrip::playbackToTravel(playback_ms millis) const {
+		if (trip_) {
+			return trip_->playlist.playback_to_travel(millis);
 		}
 		return travel_ms{millis.time_since_epoch()};
 	}
 
-	local_milliseconds QmlDrive::travelToLocal(travel_ms travel_time) const {
-		if (drive_) return drive_->travel_to_local(travel_time);
+	local_milliseconds QmlTrip::travelToLocal(travel_ms travel_time) const {
+		if (trip_) return trip_->travel_to_local(travel_time);
 
-		// without the drive start time, any answer here is wrong; here's one of
+		// without the trip start time, any answer here is wrong; here's one of
 		// them: 1970-01-01 00:00:00
 		return {};
 	}
 
-	std::pair<QGeoCoordinate, track::speed> QmlDrive::travelToPosition(
-	    mgps::travel_ms drive_millis) const {
-		if (!drive_) return {};
+	std::pair<QGeoCoordinate, track::speed> QmlTrip::travelToPosition(
+	    mgps::travel_ms trip_millis) const {
+		if (!trip_) return {};
 
-		auto pt = drive_->trace.travel_to_position(drive_millis);
+		auto pt = trip_->trace.travel_to_position(trip_millis);
 		return {{pt.lat.as_float(), pt.lon.as_float()}, pt.kmph};
 	}
 }  // namespace mgps::declarative

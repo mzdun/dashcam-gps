@@ -12,7 +12,7 @@ Rectangle {
 
     Text {
         id: text
-        text: currentDrive.carSpeed
+        text: currentTrip.carSpeed
         color: "white"
         font.bold: true
         font.pointSize: 14

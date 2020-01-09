@@ -1,8 +1,8 @@
 #include <cmath>
 #include <mgps-70mai/loader.hh>
 #include <mgps/cstdio.hh>
-#include <mgps/drive.hh>
 #include <mgps/track/trace.hh>
+#include <mgps/trip.hh>
 #include <mgps/video/playlist.hh>
 #include <numeric>
 
@@ -23,11 +23,11 @@ namespace mgps::mai {
 		}
 
 		local_milliseconds copy_chunks(
-		    std::vector<std::vector<file_info>>& interim_drive,
+		    std::vector<std::vector<file_info>>& interim_trip,
 		    video::playlist& playlist) {
-			playlist.jumps.reserve(interim_drive.size());
+			playlist.jumps.reserve(interim_trip.size());
 			playlist.clips.reserve(std::accumulate(
-			    begin(interim_drive), end(interim_drive), size_t{},
+			    begin(interim_trip), end(interim_trip), size_t{},
 			    [](size_t prev, auto const& interim_chunk) {
 				    return interim_chunk.size() + prev;
 			    }));
@@ -35,15 +35,15 @@ namespace mgps::mai {
 			travel_ms travel{};
 			playback_ms playback{};
 			auto const travel_start =
-			    [](std::vector<std::vector<file_info>>& interim_drive) {
-				    for (auto const& interim_chunk : interim_drive) {
+			    [](std::vector<std::vector<file_info>>& interim_trip) {
+				    for (auto const& interim_chunk : interim_trip) {
 					    if (interim_chunk.empty()) continue;
 					    return interim_chunk.front().date_time;
 				    }
 				    return local_milliseconds{};
-			    }(interim_drive);
+			    }(interim_trip);
 
-			for (auto& interim_chunk : interim_drive) {
+			for (auto& interim_chunk : interim_trip) {
 				playlist.jumps.push_back({playback, travel});
 
 				for (auto& interim_clip : interim_chunk) {
@@ -72,14 +72,14 @@ namespace mgps::mai {
 			return (current.offset - previous.offset) > ch::seconds{1};
 		}
 
-		void copy_points(std::vector<std::vector<file_info>>& interim_drive,
+		void copy_points(std::vector<std::vector<file_info>>& interim_trip,
 		                 track::trace& trace,
 		                 travel_ms const& start) {
 			{
 				size_t reserve_for_lines{};
 				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_chunk : interim_drive) {
+				for (auto& interim_chunk : interim_trip) {
 					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (!previous || detached(*previous, point)) {
@@ -97,7 +97,7 @@ namespace mgps::mai {
 				size_t reserve_for_line{};
 				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_chunk : interim_drive) {
+				for (auto& interim_chunk : interim_trip) {
 					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (previous && detached(*previous, point)) {
@@ -121,7 +121,7 @@ namespace mgps::mai {
 				size_t line_index{};
 				track::gps_point const* previous = nullptr;
 
-				for (auto& interim_chunk : interim_drive) {
+				for (auto& interim_chunk : interim_trip) {
 					for (auto& interim_clip : interim_chunk) {
 						for (auto& point : interim_clip.points) {
 							if (previous && detached(*previous, point)) {
@@ -212,7 +212,7 @@ namespace mgps::mai {
 		}
 	}
 
-	std::vector<drive> loader::build(ch::milliseconds max_chunk_gap) {
+	std::vector<trip> loader::build(ch::milliseconds max_chunk_gap) {
 		std::sort(begin(interim_), end(interim_),
 		          [](auto const& lhs, auto const& rhs) {
 			          return lhs.date_time < rhs.date_time;
@@ -227,7 +227,7 @@ namespace mgps::mai {
 		prev = local_milliseconds{};
 
 		// vector - vector - vector - file_info
-		// library - drive - chunk - clip
+		// library - trip - chunk - clip
 
 		std::vector<std::vector<std::vector<file_info>>> interim_library{};
 		for (auto& file : interim_) {
@@ -240,15 +240,15 @@ namespace mgps::mai {
 			interim_library.back().back().emplace_back(std::move(file));
 		}
 
-		std::vector<drive> library;
+		std::vector<trip> library;
 		library.reserve(interim_library.size());
-		for (auto& interim_drive : interim_library) {
+		for (auto& interim_trip : interim_library) {
 			library.emplace_back();
-			auto& drive = library.back();
+			auto& trip = library.back();
 
-			drive.start = copy_chunks(interim_drive, drive.playlist);
-			auto const travel_start = travel_ms{drive.start.time_since_epoch()};
-			copy_points(interim_drive, drive.trace, travel_start);
+			trip.start = copy_chunks(interim_trip, trip.playlist);
+			auto const travel_start = travel_ms{trip.start.time_since_epoch()};
+			copy_points(interim_trip, trip.trace, travel_start);
 		}
 
 		interim_.clear();

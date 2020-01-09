@@ -16,7 +16,7 @@ Rectangle {
         id: map
         anchors.fill: parent
         plugin: mapService
-        visibleRegion: currentDrive.visibleRegion
+        visibleRegion: currentTrip.visibleRegion
 
         MapQuickItem {
             visible: true
@@ -27,13 +27,13 @@ Rectangle {
                 id: image
                 source: "/img/marker.svg"
             }
-            coordinate: currentDrive.carPosition
+            coordinate: currentTrip.carPosition
         }
     }
 
     Connections {
-        target: currentDrive
-        onDriveChanged: updateLines()
+        target: currentTrip
+        onTripChanged: updateLines()
     }
 
     Component.onCompleted: updateLines()
@@ -48,7 +48,7 @@ Rectangle {
 
     function updateLines() {
         removeLines()
-        var lines = currentDrive.lines
+        var lines = currentTrip.lines
         for (let line_ndx in lines) {
             var line = lines[line_ndx]
 

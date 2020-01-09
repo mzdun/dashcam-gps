@@ -6,7 +6,7 @@
 #include <QSettings>
 #include <cinttypes>
 #include <mgps/version.hh>
-#include "declarative/QmlDrive.hh"
+#include "declarative/QmlTrip.hh"
 #include "declarative/declarative.hh"
 #include "mgps-70mai/loader.hh"
 
@@ -27,7 +27,7 @@ inline QDebug operator<<(QDebug dbg, pl<Counter> val) {
 	return dbg.space();
 }
 
-void load_library(std::string const& dirname, drive& current_drive) {
+void load_library(std::string const& dirname, trip& current_trip) {
 	using namespace std::literals;
 	constexpr auto gap = 10min;
 
@@ -37,31 +37,31 @@ void load_library(std::string const& dirname, drive& current_drive) {
 
 	size_t clips{}, jumps{}, lines{}, points{};
 	int skipped = 0;
-	for (auto const& drive : library) {
-		clips += drive.playlist.clips.size();
-		jumps += drive.playlist.jumps.size();
-		lines += drive.trace.lines.size();
-		for (auto& line : drive.trace.lines) {
+	for (auto const& trip : library) {
+		clips += trip.playlist.clips.size();
+		jumps += trip.playlist.jumps.size();
+		lines += trip.trace.lines.size();
+		for (auto& line : trip.trace.lines) {
 			points += line.points.size();
 		}
-		if (skipped < 2 && !drive.playlist.clips.empty() &&
-		    drive.trace.has_points()) {
-			current_drive = drive;
+		if (skipped < 2 && !trip.playlist.clips.empty() &&
+		    trip.trace.has_points()) {
+			current_trip = trip;
 			++skipped;
 		}
 	}
 
-	qDebug() << "Loaded" << pl{library.size(), "drive"} << "containig"
+	qDebug() << "Loaded" << pl{library.size(), "trip"} << "containig"
 	         << pl{clips, "video clip"} << "and" << pl{lines, "route line"}
 	         << "with" << pl{points, "point"};
 
 	points = 0;
-	for (auto& line : current_drive.trace.lines) {
+	for (auto& line : current_trip.trace.lines) {
 		points += line.points.size();
 	}
-	qDebug() << "Using drive containig"
-	         << pl{current_drive.playlist.clips.size(), "video clip"} << "and"
-	         << pl{current_drive.trace.lines.size(), "route plot"} << "with"
+	qDebug() << "Using trip containig"
+	         << pl{current_trip.playlist.clips.size(), "video clip"} << "and"
+	         << pl{current_trip.trace.lines.size(), "route plot"} << "with"
 	         << pl{points, "point"};
 }
 
@@ -91,22 +91,23 @@ int main(int argc, char* argv[]) {
 		settings.setValue("library", parser.value(DCIM));
 	}
 
-	drive current_drive{};
+	trip current_trip{};
+
 	{
 		QSettings settings;
 		settings.beginGroup(mgps::version::string_short);
 		auto dir = settings.value("library").toString();
 		if (!dir.isEmpty()) {
 			load_library(parser.value(DCIM).toUtf8().toStdString(),
-			             current_drive);
+			             current_trip);
 		}
 	}
 
-	mgps::declarative::QmlDrive drive{};
-	drive.setDrive(&current_drive);
+	mgps::declarative::QmlTrip trip{};
+	trip.setTrip(&current_trip);
 
 	QQmlApplicationEngine engine;
-	engine.rootContext()->setContextProperty("currentDrive", &drive);
+	engine.rootContext()->setContextProperty("currentTrip", &trip);
 	const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
 	QObject::connect(
 	    &engine, &QQmlApplicationEngine::objectCreated, &app,

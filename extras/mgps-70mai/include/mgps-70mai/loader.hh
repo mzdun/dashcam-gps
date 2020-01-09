@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace mgps {
-	struct drive;
+	struct trip;
 }
 namespace mgps::mai {
 	struct file_info {
@@ -21,7 +21,7 @@ namespace mgps::mai {
 	public:
 		bool add_file(fs::path const&) noexcept;
 		void add_directory(fs::path const&) noexcept;
-		std::vector<drive> build(ch::milliseconds max_stride_gap = {});
+		std::vector<trip> build(ch::milliseconds max_stride_gap = {});
 
 	private:
 		std::vector<file_info> interim_;

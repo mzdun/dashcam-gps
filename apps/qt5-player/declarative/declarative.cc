@@ -3,7 +3,7 @@
 #include <QQmlEngine>
 
 #include "QmlAppWindow.hh"
-#include "QmlDrive.hh"
+#include "QmlTrip.hh"
 
 namespace mgps {
 	namespace {
@@ -16,7 +16,7 @@ namespace mgps {
 	void qmlRegisterTypes() {
 		using namespace declarative;
 #define REGISTER(NAME) qmlRegisterType<Qml##NAME>(#NAME)
-		REGISTER(Drive);
+		REGISTER(Trip);
 		REGISTER(AppWindow);
 #undef REGISTER
 	}

@@ -10,10 +10,12 @@ set(PLAYER_SRCS
     declarative/declarative.hh
     declarative/QmlAppWindow.cc
     declarative/QmlAppWindow.hh
-    declarative/QmlDrive.cc
-    declarative/QmlDrive.hh
+    declarative/QmlLibrary.cc
+    declarative/QmlLibrary.hh
     declarative/QmlObject.hh
     declarative/QmlObject.cc
+    declarative/QmlTrip.cc
+    declarative/QmlTrip.hh
     qml.qrc
     )
 

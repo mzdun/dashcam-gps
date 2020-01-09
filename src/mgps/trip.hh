@@ -4,7 +4,7 @@
 #include <mgps/video/playlist.hh>
 
 namespace mgps {
-	struct drive {
+	struct trip {
 		local_milliseconds start;
 		video::playlist playlist;
 		track::trace trace;

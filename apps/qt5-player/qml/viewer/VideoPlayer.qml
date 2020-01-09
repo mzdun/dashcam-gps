@@ -17,7 +17,7 @@ Rectangle {
         autoPlay: true
         notifyInterval: 100
 
-        onPositionChanged: currentDrive.playback = position
+        onPositionChanged: currentTrip.playback = position
         onError: console.error(error, errorString)
     }
 
@@ -25,5 +25,5 @@ Rectangle {
     Keys.onLeftPressed: mediaPlayer.seek(mediaPlayer.position - 5000)
     Keys.onRightPressed: mediaPlayer.seek(mediaPlayer.position + 5000)
 
-    Component.onCompleted: currentDrive.playerAvailable(mediaPlayer)
+    Component.onCompleted: currentTrip.playerAvailable(mediaPlayer)
 }

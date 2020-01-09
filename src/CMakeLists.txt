@@ -5,31 +5,31 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.in.hh" "${CMAKE_CURRENT_BINA
 
 set(MGPS_SOURCES
     mgps/clocks.cc
-    mgps/cstdio.cc
-    mgps/drive.cc
     mgps/clocks.hh
+    mgps/cstdio.cc
     mgps/cstdio.hh
-    mgps/drive.hh
-    mgps/isom.hh
-    mgps/track/boundary.hh
-    mgps/track/coordinate.hh
-    mgps/track/point.hh
-    mgps/track/polyline.hh
-    mgps/track/speed.hh
-    mgps/track/trace.hh
-    mgps/video/file.hh
-    mgps/video/gap.hh
-    mgps/video/playlist.hh
     mgps/isom.cc
+    mgps/isom.hh
     mgps/track/boundary.cc
+    mgps/track/boundary.hh
     mgps/track/coordinate.cc
+    mgps/track/coordinate.hh
     mgps/track/point.cc
+    mgps/track/point.hh
     mgps/track/polyline.cc
+    mgps/track/polyline.hh
     mgps/track/speed.cc
+    mgps/track/speed.hh
     mgps/track/trace.cc
+    mgps/track/trace.hh
+    mgps/trip.cc
+    mgps/trip.hh
     mgps/video/file.cc
+    mgps/video/file.hh
     mgps/video/gap.cc
+    mgps/video/gap.hh
     mgps/video/playlist.cc
+    mgps/video/playlist.hh
 )
 add_library(mgps STATIC ${MGPS_SOURCES})
 

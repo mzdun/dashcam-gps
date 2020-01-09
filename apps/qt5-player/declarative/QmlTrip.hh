@@ -6,33 +6,33 @@
 #include <QGeoRectangle>
 #include <QMediaPlayer>
 #include <QUrl>
-#include <mgps/drive.hh>
+#include <mgps/trip.hh>
 
 #include "QmlObject.hh"
 
 namespace mgps::declarative {
-	class QmlDrive : public QmlObject {
+	class QmlTrip : public QmlObject {
 		Q_OBJECT
 		Q_PROPERTY(
-		    QGeoRectangle visibleRegion READ visibleRegion NOTIFY driveChanged)
+		    QGeoRectangle visibleRegion READ visibleRegion NOTIFY tripChanged)
 		Q_PROPERTY(long long playback READ playback WRITE setPlayback NOTIFY
 		               playbackChanged)
 		Q_PROPERTY(QString playbackString READ playbackString NOTIFY
 		               playbackStringChanged)
-		Q_PROPERTY(long long duration READ duration NOTIFY driveChanged)
+		Q_PROPERTY(long long duration READ duration NOTIFY tripChanged)
 		Q_PROPERTY(
-		    QString durationString READ durationString NOTIFY driveChanged)
+		    QString durationString READ durationString NOTIFY tripChanged)
 		Q_PROPERTY(QDateTime timeline READ timeline NOTIFY timelineChanged)
 		Q_PROPERTY(QString timelineString READ timelineString NOTIFY
 		               timelineStringChanged)
 		Q_PROPERTY(QGeoCoordinate carPosition READ carPosition NOTIFY
 		               carPositionChanged)
 		Q_PROPERTY(unsigned carSpeed READ carSpeed NOTIFY carSpeedChanged)
-		Q_PROPERTY(QVariantList lines READ lines NOTIFY driveChanged)
+		Q_PROPERTY(QVariantList lines READ lines NOTIFY tripChanged)
 	public:
-		QmlDrive();
+		QmlTrip();
 
-		void setDrive(mgps::drive const* drive);
+		void setTrip(mgps::trip const* trip);
 
 		Q_INVOKABLE void playerAvailable(QObject*);
 
@@ -55,7 +55,7 @@ namespace mgps::declarative {
 		QString timelineString() const;
 
 	signals:
-		void driveChanged();
+		void tripChanged();
 		void playbackChanged();
 		void playbackStringChanged();
 		void timelineChanged();
@@ -81,7 +81,7 @@ namespace mgps::declarative {
 			return offsets_[currentFile];
 		}
 
-		mgps::drive const* drive_{nullptr};
+		mgps::trip const* trip_{nullptr};
 		ch::milliseconds duration_{};
 		playback_ms playback_{};
 		travel_ms timeline_{};
@@ -93,4 +93,4 @@ namespace mgps::declarative {
 	};
 }  // namespace mgps::declarative
 
-Q_DECLARE_METATYPE(mgps::declarative::QmlDrive);
+Q_DECLARE_METATYPE(mgps::declarative::QmlTrip);

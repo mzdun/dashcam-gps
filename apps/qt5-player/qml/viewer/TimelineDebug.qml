@@ -12,7 +12,7 @@ Rectangle {
 
     Text {
         id: debug
-        text: currentDrive.timelineString
+        text: currentTrip.timelineString
         color: "orange"
         font.bold: true
         font.pointSize: 11

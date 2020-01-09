@@ -16,7 +16,7 @@ Rectangle {
 
     Text {
         id: current
-        text: currentDrive.playbackString
+        text: currentTrip.playbackString
         color: "white"
         padding: 10
 
@@ -28,7 +28,7 @@ Rectangle {
 
     Text {
         id: duration
-        text: currentDrive.durationString
+        text: currentTrip.durationString
         color: "white"
         padding: 10
 
@@ -39,7 +39,7 @@ Rectangle {
     }
 
     ProgressBar {
-        value: currentDrive.duration > 0 ? currentDrive.playback / currentDrive.duration : 0;
+        value: currentTrip.duration > 0 ? currentTrip.playback / currentTrip.duration : 0;
         anchors {
             left: current.right
             right: duration.left
