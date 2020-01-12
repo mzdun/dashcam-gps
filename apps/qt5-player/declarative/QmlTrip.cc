@@ -2,6 +2,7 @@
 
 #include <QMediaPlaylist>
 #include <QQmlEngine>
+#include <mgps/library.hh>
 
 namespace mgps::declarative {
 	using namespace std::chrono;
@@ -46,15 +47,10 @@ namespace mgps::declarative {
 		if (!forced && millis == playback_) return;
 
 		auto const old_playback = floor<seconds>(playback_);
-		auto const old_timeline = floor<seconds>(timeline_);
 
 		playback_ = millis;
 
-		auto const new_timeline = playbackToTravel(millis);
-		auto const emit_timeline = new_timeline != timeline_;
-		timeline_ = new_timeline;
-
-		auto const [new_position, new_speed] = travelToPosition(new_timeline);
+		auto const [new_position, new_speed] = travelToPosition(millis);
 		auto const emit_position = new_position != car_position_;
 		car_position_ = new_position;
 		auto const emit_speed = new_speed != car_speed_;
@@ -63,9 +59,6 @@ namespace mgps::declarative {
 		emit playbackChanged();
 		if (forced || floor<seconds>(playback_) != old_playback)
 			emit playbackStringChanged();
-		if (forced || emit_timeline) emit timelineChanged();
-		if (forced || floor<seconds>(timeline_) != old_timeline)
-			emit timelineStringChanged();
 		if (forced || emit_position) emit carPositionChanged();
 		if (forced || emit_speed) emit carSpeedChanged();
 	}
@@ -85,20 +78,6 @@ namespace mgps::declarative {
 		        width, height};
 	}
 
-	QDateTime QmlTrip::timeline() const noexcept {
-		auto const world = travelToLocal(timeline_);
-		auto const secs = floor<seconds>(world);
-		auto const date = floor<days>(secs);
-		auto const time = secs - date;
-
-		auto const ymd = year_month_day{local_days{date}};
-		auto const hms = hh_mm_ss{time};
-		return {QDate{int(ymd.year()), int(unsigned(ymd.month())),
-		              int(unsigned(ymd.day()))},
-		        QTime{int(hms.hours().count()), int(hms.minutes().count()),
-		              int(hms.seconds().count())}};
-	}
-
 	QString QmlTrip::playbackString() const {
 		std::ostringstream ostr;
 		ostr << hh_mm_ss{floor<seconds>(playback_).time_since_epoch()};
@@ -108,12 +87,6 @@ namespace mgps::declarative {
 	QString QmlTrip::durationString() const {
 		std::ostringstream ostr;
 		ostr << hh_mm_ss{floor<seconds>(duration_)};
-		return QString::fromStdString(ostr.str());
-	}
-
-	QString QmlTrip::timelineString() const {
-		std::ostringstream ostr;
-		ostr << floor<seconds>(travelToLocal(timeline_));
 		return QString::fromStdString(ostr.str());
 	}
 
@@ -131,10 +104,11 @@ namespace mgps::declarative {
 		if (trip_) {
 			auto playlist = new QMediaPlaylist(player_);
 
-			offsets_.reserve(trip_->playlist.clips.size());
-			for (auto const& video : trip_->playlist.clips) {
+			offsets_.reserve(trip_->playlist.media.size());
+			for (auto const& video : trip_->playlist.media) {
+				auto file = trip_->footage(video);
 				auto url = QUrl::fromLocalFile(
-				    QString::fromStdString(video.filename.string()));
+				    QString::fromStdString(file->filename.string()));
 
 				offsets_.push_back(offset);
 				offset += video.duration;
@@ -168,15 +142,8 @@ namespace mgps::declarative {
 		return size_t(playlist->currentIndex());
 	}
 
-	travel_ms QmlTrip::playbackToTravel(playback_ms millis) const {
-		if (trip_) {
-			return trip_->playlist.playback_to_travel(millis);
-		}
-		return travel_ms{millis.time_since_epoch()};
-	}
-
-	local_milliseconds QmlTrip::travelToLocal(travel_ms travel_time) const {
-		if (trip_) return trip_->travel_to_local(travel_time);
+	local_ms QmlTrip::playbackToLocal(playback_ms millis) const {
+		if (trip_) return trip_->travel_to_local(millis);
 
 		// without the trip start time, any answer here is wrong; here's one of
 		// them: 1970-01-01 00:00:00
@@ -184,10 +151,10 @@ namespace mgps::declarative {
 	}
 
 	std::pair<QGeoCoordinate, track::speed> QmlTrip::travelToPosition(
-	    mgps::travel_ms trip_millis) const {
+	    playback_ms trip_millis) const {
 		if (!trip_) return {};
 
-		auto pt = trip_->trace.travel_to_position(trip_millis);
+		auto pt = trip_->trace.playback_to_position(trip_millis);
 		return {{pt.lat.as_float(), pt.lon.as_float()}, pt.kmph};
 	}
 }  // namespace mgps::declarative

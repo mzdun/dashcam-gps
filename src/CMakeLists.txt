@@ -10,6 +10,12 @@ set(MGPS_SOURCES
     mgps/cstdio.hh
     mgps/isom.cc
     mgps/isom.hh
+    mgps/library.cc
+    mgps/library.hh
+    mgps/media_file.cc
+    mgps/media_file.hh
+    mgps/plugins/plugin_interface.cc
+    mgps/plugins/plugin_interface.hh
     mgps/track/boundary.cc
     mgps/track/boundary.hh
     mgps/track/coordinate.cc
@@ -24,10 +30,8 @@ set(MGPS_SOURCES
     mgps/track/trace.hh
     mgps/trip.cc
     mgps/trip.hh
-    mgps/video/file.cc
-    mgps/video/file.hh
-    mgps/video/gap.cc
-    mgps/video/gap.hh
+    mgps/video/media_clip.cc
+    mgps/video/media_clip.hh
     mgps/video/playlist.cc
     mgps/video/playlist.hh
 )
@@ -41,3 +45,4 @@ if (NOT (MSVC OR (CMAKE_SYSTEM_NAME STREQUAL "Android")))
 endif()
 
 dir_filters(MGPS_SOURCES)
+set_target_properties(mgps PROPERTIES FOLDER ${FOLDER_CORE})

@@ -19,12 +19,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # March 2017 does not work for VC and gcc...
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
 
+set(FOLDER_APPS "Apps")
+set(FOLDER_CORE "Core")
+set(FOLDER_EXTRAS "Core/Extras")
+set(FOLDER_EXTERNAL "External")
+
 add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(extras)
 add_subdirectory(apps)
-
-set_target_properties(mgps PROPERTIES FOLDER "Core")
-set_target_properties(mgps-70mai PROPERTIES FOLDER "Core/Extras")
-set_target_properties(html+svg qt5-player PROPERTIES FOLDER "Apps")
-set_target_properties(Continuous Experimental Nightly NightlyMemoryCheck PROPERTIES FOLDER "External/CTRE")

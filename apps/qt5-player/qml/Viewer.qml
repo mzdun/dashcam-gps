@@ -44,13 +44,6 @@ Rectangle {
                 margins: 10
             }
         }
-
-        TimelineDebug {
-            anchors {
-                right: parent.right
-                bottom: parent.bottom
-            }
-        }
     }
 
     VideoPlayer {

@@ -9,11 +9,11 @@ namespace mgps::track {
 		return false;
 	}
 
-	gps_point trace::travel_to_position(travel_ms travel,
-	                                    bool interpolate) const noexcept {
-		travel -= offset.time_since_epoch();
+	gps_point trace::playback_to_position(playback_ms position,
+	                                      bool interpolate) const noexcept {
+		position -= offset.time_since_epoch();
 		auto it_line = std::upper_bound(begin(lines), end(lines),
-		                                timeline_item{travel, {}},
+		                                timeline_item{position, {}},
 		                                [](auto const& lhs, auto const& rhs) {
 			                                return lhs.offset < rhs.offset;
 		                                });
@@ -21,6 +21,6 @@ namespace mgps::track {
 		if (it_line != begin(lines)) std::advance(it_line, -1);
 		if (it_line == end(lines)) return {};
 
-		return it_line->travel_to_position(travel, interpolate);
+		return it_line->playback_to_position(position, interpolate);
 	}
 }  // namespace mgps::track

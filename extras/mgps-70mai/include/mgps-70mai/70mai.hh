@@ -2,15 +2,15 @@
 #include <mgps/isom.hh>
 #include <mgps/track/point.hh>
 #include <mgps/track/speed.hh>
-#include <mgps/video/file.hh>
+#include <mgps/media_file.hh>
 #include <vector>
 
 namespace mgps::isom::mai {
 	constexpr auto GPS_box = synth_type("GPS ");
 
 	struct clip_filename_info {
-		video::clip type{video::clip::unrecognized};
-		local_milliseconds ts{};
+		clip type{clip::unrecognized};
+		local_ms ts{};
 	};
 
 	clip_filename_info get_filename_info(std::string_view filename);

@@ -11,13 +11,13 @@ namespace mgps::track {
 		return from + (to - from) * fraction / whole;
 	}
 
-	gps_point polyline::travel_to_position(travel_ms travel,
-	                                       bool interpolate) const noexcept {
-		travel -= offset.time_since_epoch();
+	gps_point polyline::playback_to_position(playback_ms position,
+	                                         bool interpolate) const noexcept {
+		position -= offset.time_since_epoch();
 
 		auto const time = [=]() {
 			gps_point out{};
-			out.offset = travel.time_since_epoch();
+			out.offset = position.time_since_epoch();
 			return out;
 		}();
 
@@ -31,7 +31,7 @@ namespace mgps::track {
 
 		auto const& sure = *it;
 		if (!interpolate) return sure;
-		if (sure.offset > travel.time_since_epoch()) return sure;
+		if (sure.offset > position.time_since_epoch()) return sure;
 
 		std::advance(it, 1);
 		if (it == end(points)) return sure;
@@ -39,13 +39,13 @@ namespace mgps::track {
 		auto const& next = *it;
 
 		auto const fraction = static_cast<unsigned long long>(
-		    (travel.time_since_epoch() - sure.offset).count());
+		    (position.time_since_epoch() - sure.offset).count());
 		auto const whole = static_cast<unsigned long long>(
 		    (next.offset - sure.offset).count());
 		if (!whole) return sure;
 
 		auto const lon = linear<0>(sure, next, fraction, whole);
 		auto const lat = linear<1>(sure, next, fraction, whole);
-		return {{lat, lon}, sure.kmph, travel.time_since_epoch()};
+		return {{lat, lon}, sure.kmph, position.time_since_epoch()};
 	}
 }  // namespace mgps::track

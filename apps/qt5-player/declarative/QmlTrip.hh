@@ -22,9 +22,6 @@ namespace mgps::declarative {
 		Q_PROPERTY(long long duration READ duration NOTIFY tripChanged)
 		Q_PROPERTY(
 		    QString durationString READ durationString NOTIFY tripChanged)
-		Q_PROPERTY(QDateTime timeline READ timeline NOTIFY timelineChanged)
-		Q_PROPERTY(QString timelineString READ timelineString NOTIFY
-		               timelineStringChanged)
 		Q_PROPERTY(QGeoCoordinate carPosition READ carPosition NOTIFY
 		               carPositionChanged)
 		Q_PROPERTY(unsigned carSpeed READ carSpeed NOTIFY carSpeedChanged)
@@ -43,7 +40,6 @@ namespace mgps::declarative {
 			return playback_.time_since_epoch().count();
 		}
 		long long duration() const noexcept { return duration_.count(); }
-		QDateTime timeline() const noexcept;
 		QGeoCoordinate const& carPosition() const noexcept {
 			return car_position_;
 		}
@@ -52,14 +48,11 @@ namespace mgps::declarative {
 
 		QString playbackString() const;
 		QString durationString() const;
-		QString timelineString() const;
 
 	signals:
 		void tripChanged();
 		void playbackChanged();
 		void playbackStringChanged();
-		void timelineChanged();
-		void timelineStringChanged();
 		void carPositionChanged();
 		void carSpeedChanged();
 
@@ -68,10 +61,9 @@ namespace mgps::declarative {
 		void populatePlaylist();
 		void populateLines();
 		size_t currentIndex();
-		travel_ms playbackToTravel(playback_ms) const;
-		local_milliseconds travelToLocal(travel_ms) const;
+		local_ms playbackToLocal(playback_ms) const;
 		std::pair<QGeoCoordinate, track::speed> travelToPosition(
-		    travel_ms) const;
+		    playback_ms) const;
 
 		playback_ms getOffset(size_t currentFile) {
 			if (currentFile >= offsets_.size()) {
@@ -84,7 +76,6 @@ namespace mgps::declarative {
 		mgps::trip const* trip_{nullptr};
 		ch::milliseconds duration_{};
 		playback_ms playback_{};
-		travel_ms timeline_{};
 		QGeoCoordinate car_position_{};
 		track::speed car_speed_{};
 		QVariantList lines_{};

@@ -6,9 +6,11 @@
 #include <QSettings>
 #include <cinttypes>
 #include <mgps/version.hh>
+
 #include "declarative/QmlTrip.hh"
 #include "declarative/declarative.hh"
-#include "mgps-70mai/loader.hh"
+#include "mgps-70mai/plugin.hh"
+#include "mgps/library.hh"
 
 using namespace mgps;
 using namespace mgps::track;
@@ -27,24 +29,27 @@ inline QDebug operator<<(QDebug dbg, pl<Counter> val) {
 	return dbg.space();
 }
 
-void load_library(std::string const& dirname, trip& current_trip) {
+void load_library(std::string const& dirname,
+                  trip& current_trip,
+                  library& lib) {
 	using namespace std::literals;
 	constexpr auto gap = 10min;
 
-	mgps::mai::loader builder{};
-	builder.add_directory(dirname);
-	auto library = builder.build(gap);
+	lib.make_plugin<mai::plugin>();
+	lib.before_update();
+	lib.add_directory(dirname);
+	lib.after_update();
+	auto library = lib.build(page::everything, library::default_gap);
 
-	size_t clips{}, jumps{}, lines{}, points{};
+	size_t media{}, lines{}, points{};
 	int skipped = 0;
 	for (auto const& trip : library) {
-		clips += trip.playlist.clips.size();
-		jumps += trip.playlist.jumps.size();
+		media += trip.playlist.media.size();
 		lines += trip.trace.lines.size();
 		for (auto& line : trip.trace.lines) {
 			points += line.points.size();
 		}
-		if (skipped < 2 && !trip.playlist.clips.empty() &&
+		if (skipped < 2 && !trip.playlist.media.empty() &&
 		    trip.trace.has_points()) {
 			current_trip = trip;
 			++skipped;
@@ -52,7 +57,7 @@ void load_library(std::string const& dirname, trip& current_trip) {
 	}
 
 	qDebug() << "Loaded" << pl{library.size(), "trip"} << "containig"
-	         << pl{clips, "video clip"} << "and" << pl{lines, "route line"}
+	         << pl{media, "video clip"} << "and" << pl{lines, "route line"}
 	         << "with" << pl{points, "point"};
 
 	points = 0;
@@ -60,7 +65,7 @@ void load_library(std::string const& dirname, trip& current_trip) {
 		points += line.points.size();
 	}
 	qDebug() << "Using trip containig"
-	         << pl{current_trip.playlist.clips.size(), "video clip"} << "and"
+	         << pl{current_trip.playlist.media.size(), "video clip"} << "and"
 	         << pl{current_trip.trace.lines.size(), "route plot"} << "with"
 	         << pl{points, "point"};
 }
@@ -91,6 +96,7 @@ int main(int argc, char* argv[]) {
 		settings.setValue("library", parser.value(DCIM));
 	}
 
+	library lib{};
 	trip current_trip{};
 
 	{
@@ -99,7 +105,7 @@ int main(int argc, char* argv[]) {
 		auto dir = settings.value("library").toString();
 		if (!dir.isEmpty()) {
 			load_library(parser.value(DCIM).toUtf8().toStdString(),
-			             current_trip);
+			             current_trip, lib);
 		}
 	}
 

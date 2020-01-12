@@ -7,7 +7,6 @@
         <file>qml/viewer/ProgressControl.qml</file>
         <file>qml/viewer/RouteViewer.qml</file>
         <file>qml/viewer/Speedometer.qml</file>
-        <file>qml/viewer/TimelineDebug.qml</file>
         <file>qml/viewer/VideoPlayer.qml</file>
     </qresource>
 </RCC>

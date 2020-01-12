@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
-#include <mgps-70mai/loader.hh>
+#include <mgps-70mai/plugin.hh>
+#include <mgps/library.hh>
 #include <mgps/trip.hh>
 
 #include "svg.hh"
@@ -14,11 +15,13 @@ int main(int argc, char** argv) {
 	}
 
 	using namespace std::literals;
-	constexpr auto gap = 10min;
 
-	mai::loader loader{};
-	loader.add_directory(argv[1]);
-	auto lib = loader.build(gap);
+	library lib{};
+	lib.make_plugin<mai::plugin>();
+	lib.before_update();
+	lib.add_directory(argv[1]);
+	lib.after_update();
+	auto section = lib.build(page::everything, library::default_gap);
 
 	{
 		std::error_code ec;
@@ -28,7 +31,7 @@ int main(int argc, char** argv) {
 	if (argc > 2) {
 		std::ofstream out{argv[2]};
 		if (out.is_open()) {
-			svg::html_trace(out, lib);
+			svg::html_trace(out, section);
 			std::error_code ec;
 			auto path = fs::weakly_canonical(fs::path{argv[2]}, ec);
 			if (ec)
@@ -39,5 +42,5 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	svg::html_trace(std::cout, lib);
+	svg::html_trace(std::cout, section);
 }

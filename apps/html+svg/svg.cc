@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
-#include <mgps-70mai/loader.hh>
+#include <mgps-70mai/plugin.hh>
 #include <mgps/cstdio.hh>
 #include <mgps/trip.hh>
 #include <optional>
@@ -14,8 +14,8 @@
 
 namespace fs = std::filesystem;
 
-std::ostream& operator<<(std::ostream& out, mgps::video::clip clip_type) {
-	using namespace mgps::video;
+std::ostream& operator<<(std::ostream& out, mgps::clip clip_type) {
+	using namespace mgps;
 	out << "<span class=\"clip-type\"";
 	switch (clip_type) {
 		case clip::emergency:
@@ -165,7 +165,7 @@ namespace mgps::svg {
 <tr><th>Duration:</th><td>)"
 		    << floor<ch::seconds>(trip.playlist.duration)
 		    << "</td></tr>\n<tr><th>Playlist:</th><td>"
-		    << pl{trip.playlist.clips.size(), "clip"}
+		    << pl{trip.playlist.media.size(), "clip"}
 		    << "</td></tr>\n<tr><th>Plot:</tthd><td>"
 		    << pl{trip.trace.lines.size(), "line"} << " with "
 		    << pl{gpses, "point"} << "</td></tr>\n<tr><th>Distance:</th><td>"
@@ -186,8 +186,8 @@ namespace mgps::svg {
 )";
 
 		bool has_millis_in_offset = false;
-		for (auto& clip : trip.playlist.clips) {
-			if (floor<ch::seconds>(clip.offset) != clip.offset) {
+		for (auto& file : trip.playlist.media) {
+			if (floor<ch::seconds>(file.offset) != file.offset) {
 				has_millis_in_offset = true;
 				break;
 			}
@@ -197,7 +197,7 @@ namespace mgps::svg {
 		auto cwd = fs::current_path(ec);
 		auto can_use_proximate = !ec;
 
-		for (auto& clip : trip.playlist.clips) {
+		for (auto& clip : trip.playlist.media) {
 			out << "<tr><td class=\"num\">";
 			if (has_millis_in_offset)
 				out << clip.offset.time_since_epoch();
@@ -205,17 +205,23 @@ namespace mgps::svg {
 				out << floor<ch::seconds>(clip.offset).time_since_epoch();
 			out << "</td><td class=\"num\">" << clip.duration << "</td><td>";
 
-			out << R"(<a target="player-page" href=")";
-			bool printed_proximate = false;
-			if (can_use_proximate) {
-				auto relative = fs::proximate(clip.filename, cwd, ec);
-				if (!ec) {
-					out << relative.string();
-					printed_proximate = true;
+			auto file = trip.footage(clip);
+			if (file) {
+				out << R"(<a target="player-page" href=")";
+				bool printed_proximate = false;
+				if (can_use_proximate) {
+					auto relative = fs::proximate(file->filename, cwd, ec);
+					if (!ec) {
+						out << relative.string();
+						printed_proximate = true;
+					}
 				}
+				if (!printed_proximate) out << file->filename.string();
+				out << R"(">)" << file->type << "</a>";
+			} else {
+				out << "&#x2049;&#xFE0F;";
 			}
-			if (!printed_proximate) out << clip.filename.string();
-			out << R"(">)" << clip.type << "</a></td></tr>\n";
+			out << "</td></tr>\n";
 		}
 
 		out << R"(</td></tr>

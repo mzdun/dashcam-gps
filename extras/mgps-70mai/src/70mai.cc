@@ -167,7 +167,6 @@ namespace mgps::isom::mai {
 		if (!parts) return {};
 
 		auto const clip_type = [](std::string_view type) {
-			using namespace video;
 #define UP(C) std::toupper(static_cast<unsigned char>(C))
 #define TYPE_IS(L1, L2) ((UP(type[0]) == L1) && (UP(type[1]) == L2))
 			if (TYPE_IS('N', 'O')) return clip::normal;

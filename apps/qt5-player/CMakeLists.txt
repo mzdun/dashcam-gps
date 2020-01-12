@@ -27,7 +27,7 @@ if (WIN32)
 endif()
 
 add_executable(qt5-player ${PLAYER_SRCS})
-set_target_properties(qt5-player PROPERTIES OUTPUT_NAME "${PROJECT_NAME}-player")
+set_target_properties(qt5-player PROPERTIES OUTPUT_NAME "${PROJECT_NAME}-player" FOLDER ${FOLDER_APPS})
 target_compile_definitions(qt5-player PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(qt5-player PRIVATE Qt5::Core Qt5::Quick Qt5::Location Qt5::Positioning Qt5::Multimedia mgps-70mai)
 target_include_directories(qt5-player PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
