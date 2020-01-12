@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <mgps/video/file.hh>
 #include <mgps/video/gap.hh>
+#include <vector>
 
 namespace mgps::video {
 	struct playlist {

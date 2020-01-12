@@ -19,7 +19,7 @@ namespace mgps::isom::cstdio {
 #pragma warning(pop)
 #endif
 		} else {
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 			// I beg to differ, the casts here are not useless, as they are
@@ -45,11 +45,12 @@ namespace mgps::isom::cstdio {
 				if (!actualy_read) break;
 				read += actualy_read;
 				data += actualy_read;
+				length -= actualy_read;
 			}
 
 			return read;
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 		}
@@ -58,12 +59,12 @@ namespace mgps::isom::cstdio {
 	uint64_t storage::tell() {
 		auto const ret = std::ftell(bits_.get());
 		if (ret < 0)  // error... TODO: throw
-			return 0u;
+			return 0U;
 		return static_cast<unsigned long>(ret);
 	}
 
 	uint64_t storage::seek(uint64_t offset) {
-		constexpr uint64_t max_chunk = std::numeric_limits<long>::max();
+		static constexpr auto max_chunk = static_cast<uint64_t>(std::numeric_limits<long>::max());
 		std::fseek(bits_.get(), 0, SEEK_SET);
 		while (offset) {
 			uint64_t chunk = offset;

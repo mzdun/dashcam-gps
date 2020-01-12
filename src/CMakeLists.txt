@@ -36,7 +36,7 @@ add_library(mgps STATIC ${MGPS_SOURCES})
 target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(mgps date::date)
 
-if (NOT MSVC)
+if (NOT (MSVC OR (CMAKE_SYSTEM_NAME STREQUAL "Android")))
 	target_link_libraries(mgps stdc++fs)
 endif()
 
