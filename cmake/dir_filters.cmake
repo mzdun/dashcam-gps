@@ -7,14 +7,8 @@ function(dir_filters SRCS)
         # Remove common directory prefix to make the group
         string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" GROUP "${PARENT_DIR}")
         # Make sure we are using windows slashes
-        string(REPLACE "/" "\\" GROUP "${GROUP}")
-        # Group into "Source Files" and "Header Files"
-        if ("${FILE}" MATCHES ".*\\.c")
-            set(GROUP "Source Files${GROUP}")
-        elseif("${FILE}" MATCHES ".*\\.h")
-            set(GROUP "Header Files${GROUP}")
-        else()
-            set(GROUP "Other Files${GROUP}")
+        if (WIN32)
+            string(REPLACE "/" "\\" GROUP "${GROUP}")
         endif()
         source_group("${GROUP}" FILES "${FILE}")
     endforeach()

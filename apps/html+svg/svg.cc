@@ -71,48 +71,125 @@ namespace mgps::svg {
 		}
 	};
 
+	struct projected {
+		double y{};
+		double x{};
+
+		template <size_t id>
+		auto& get() noexcept {
+			if constexpr (id == 0)
+				return x;
+			else if constexpr (id == 1)
+				return y;
+		}
+
+		template <size_t id>
+		auto const& get() const noexcept {
+			if constexpr (id == 0)
+				return x;
+			else if constexpr (id == 1)
+				return y;
+		}
+	};
+
+	class projection {
+	public:
+		projection(lat_lon const& center) : center_{center} {};
+		projected project(lat_lon const& pt) const noexcept {
+			auto const lat = center_.lat + (pt.lat - center_.lat) * 3 / 2;
+			return {lat, pt.lon};
+		}
+		projected project(track::point const& pt) const noexcept {
+			return project(lat_lon{pt.lat.as_float(), pt.lon.as_float()});
+		}
+
+	private:
+		static double deg2rad(double angle) noexcept {
+			return angle * 3.141592653589793 / 180.0;
+		};
+
+		lat_lon center_;
+	};
+
 	void svg_trace(std::ostream& out, track::trace const& trace) {
 		static constexpr auto MARGIN = 0.01;
 
 		if (!trace.has_points()) return;
+		auto projection_center = [&] {
+			auto projection_bounds =
+			    trace.boundary_box_impl<lat_lon>([](track::point const& pt) {
+				    return lat_lon{pt.lat.as_float(), pt.lon.as_float()};
+			    });
+			return projection_bounds.center();
+		}();
+
+		projection camera{projection_center};
 		auto bounds =
-		    trace.boundary_box_impl<lat_lon>([](track::point const& pt) {
-			    return lat_lon{pt.lat.as_float(), pt.lon.as_float()};
+		    trace.boundary_box_impl<projected>([&](track::point const& pt) {
+			    return camera.project(
+			        lat_lon{pt.lat.as_float(), pt.lon.as_float()});
 		    });
 
-		bounds.topLeft.lat += MARGIN;
-		bounds.topLeft.lon -= MARGIN;
+		bounds.topLeft.y += MARGIN;
+		bounds.topLeft.x -= MARGIN;
 
-		bounds.bottomRight.lat -= MARGIN;
-		bounds.bottomRight.lon += MARGIN;
+		bounds.bottomRight.y -= MARGIN;
+		bounds.bottomRight.x += MARGIN;
 
 		auto const scale = 100000;
-		auto const cm = scale / 100;
+		auto const cm = scale * 2 / 300;
 		auto const height = bounds.height() * scale;
 		auto const width = bounds.width() * scale;
 		out << R"(<div class="route">
 <svg width=")"
 		    << width / cm << R"(cm" height=")" << height / cm
 		    << R"(cm" viewBox=" 0 0 )" << width << " " << height
-		    << R"(" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;fill:none">
+		    << R"(" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;stroke-linejoin:round;stroke-linecap:round;fill:none">
+<rect x="0" y="0" width=")"
+		    << width << R"(" height=")" << height
+		    << R"(" rx="600" style="fill:#FEF7E0;stroke:none"/>
 )";
 		for (auto& line : trace.lines) {
-			auto const distance = double(line.distance()) / 1000.0;
-			out << "<g>\n";
-
 			bool first_point = true;
-			out << R"(<path d=")";
-			for (auto const& pt : line.points) {
+			out << R"(<path style="stroke:white;stroke-width:180" d=")";
+			for (auto const& gps : line.points) {
+				auto const pt = camera.project(gps);
 				if (first_point) {
 					out << "M";
 					first_point = false;
 				} else {
 					out << "L";
 				}
-				out << (pt.lon.as_float() - bounds.topLeft.lon) * scale << ' '
-				    << height -
-				           (pt.lat.as_float() - bounds.bottomRight.lat) * scale
-				    << ' ';
+				out << (pt.x - bounds.topLeft.x) * scale << ' '
+				    << height - (pt.y - bounds.bottomRight.y) * scale << ' ';
+			}
+			out << R"(" />
+)";
+			if (!line.points.empty()) {
+				auto const& pt = camera.project(line.points.front());
+				out << R"(<circle style="stroke:white;stroke-width:180" cx=")"
+				    << (pt.x - bounds.topLeft.x) * scale << R"(" cy=")"
+				    << height - (pt.y - bounds.bottomRight.y) * scale
+				    << R"(" r="40" />
+)";
+			}
+		}
+
+		for (auto& line : trace.lines) {
+			auto const distance = double(line.distance()) / 1000.0;
+			out << "<g>\n";
+			bool first_point = true;
+			out << R"(<path d=")";
+			for (auto const& gps : line.points) {
+				auto const pt = camera.project(gps);
+				if (first_point) {
+					out << "M";
+					first_point = false;
+				} else {
+					out << "L";
+				}
+				out << (pt.x - bounds.topLeft.x) * scale << ' '
+				    << height - (pt.y - bounds.bottomRight.y) * scale << ' ';
 			}
 			out << R"(" >
 <title>)" << distance
@@ -121,13 +198,11 @@ namespace mgps::svg {
 			    << R"( km/h avg)</title>
 </path>)";
 			if (!line.points.empty()) {
-				auto const& pt = line.points.front();
-				out << R"(<circle style="stroke-width:20" cx=")"
-				    << (pt.lon.as_float() - bounds.topLeft.lon) * scale
-				    << R"(" cy=")"
-				    << height -
-				           (pt.lat.as_float() - bounds.bottomRight.lat) * scale
-				    << R"(" r="100" />
+				auto const& pt = camera.project(line.points.front());
+				out << R"(<circle style="stroke-width:60" cx=")"
+				    << (pt.x - bounds.topLeft.x) * scale << R"(" cy=")"
+				    << height - (pt.y - bounds.bottomRight.y) * scale
+				    << R"(" r="40" />
 )";
 			}
 			out << "</g>\n";
@@ -258,7 +333,7 @@ iframe {
 	background: black
 }
 
-g:hover { stroke: red }
+g:hover { stroke: #F88 }
 
 a { text-decoration: none }
 
