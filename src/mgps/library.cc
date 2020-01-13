@@ -81,24 +81,43 @@ namespace mgps {
 			playlist.duration = playback;
 		}
 
-		inline bool detached(track::gps_point const& previous,
-		                     track::gps_point const& current) {
-			return (current.offset - previous.offset) > ch::seconds{1};
-		}
+		class edge {
+		public:
+			bool detached(local_ms const& current) noexcept {
+				auto const prev = previous_;
+				auto const first = first_;
+				previous_ = current;
+				first_ = false;
+				return !first && (current - prev) > ch::seconds{1};
+			}
+			bool detached_with_first(local_ms const& current) noexcept {
+				if (first_) {
+					first_ = false;
+					return true;
+				}
+				return detached(current);
+			}
+
+			bool first() const noexcept { return first_; }
+
+		private:
+			bool first_{true};
+			local_ms previous_{};
+		};
 
 		inline void create_lines(video::playlist const& playlist,
 		                         std::vector<media_file> const& footage,
 		                         track::trace& trace) {
 			{
 				size_t reserve_for_lines{};
-				track::gps_point const* previous = nullptr;
+				edge line{};
 
 				for (auto const& file : playlist.media) {
-					for (auto& point : footage[file.reference].points) {
-						if (!previous || detached(*previous, point)) {
+					auto const& clip = footage[file.reference];
+					for (auto& point : clip.points) {
+						if (line.detached_with_first(point.offset +
+						                             clip.date_time))
 							++reserve_for_lines;
-						}
-						previous = &point;
 					}
 				}
 
@@ -107,16 +126,16 @@ namespace mgps {
 
 			{
 				size_t reserve_for_line{};
-				track::gps_point const* previous = nullptr;
+				edge line{};
 
 				for (auto const& file : playlist.media) {
-					for (auto& point : footage[file.reference].points) {
-						if (previous && detached(*previous, point)) {
+					auto const& clip = footage[file.reference];
+					for (auto& point : clip.points) {
+						if (line.detached(point.offset + clip.date_time)) {
 							trace.lines.emplace_back();
 							trace.lines.back().points.reserve(reserve_for_line);
 							reserve_for_line = 0;
 						}
-						previous = &point;
 						++reserve_for_line;
 					}
 				}
@@ -128,22 +147,22 @@ namespace mgps {
 			}
 			{
 				size_t line_index{};
-				track::gps_point const* previous = nullptr;
+				edge line{};
 
 				for (auto const& file : playlist.media) {
-					for (auto& input : footage[file.reference].points) {
-						if (previous && detached(*previous, input)) {
+					auto const& clip = footage[file.reference];
+					for (auto& point : clip.points) {
+						if (line.detached(point.offset + clip.date_time))
 							++line_index;
-						}
-						previous = &input;
 
-						auto copy = input;
+						auto copy = point;
 						copy.offset += file.offset.time_since_epoch();
-						auto& line = trace.lines[line_index].points;
-						if (line.empty() || line.back().offset != copy.offset)
-							line.push_back(copy);
+						auto& points = trace.lines[line_index].points;
+						if (points.empty() ||
+						    points.back().offset != copy.offset)
+							points.push_back(copy);
 						else
-							line.back() = copy;
+							points.back() = copy;
 					}
 				}
 			}
