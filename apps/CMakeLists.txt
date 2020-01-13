@@ -1,3 +1,5 @@
+if (NOT ANDROID)
 add_subdirectory(html+svg)
 add_subdirectory(listing)
 add_subdirectory(qt5-player)
+endif(NOT ANDROID)
