@@ -1,5 +1,6 @@
 #pragma once
 
+#include <jni.h>
 #define JNI_PRIMITIVES(X)   \
 	X(jbyte, Byte, "B")     \
 	X(jchar, Char, "C")     \

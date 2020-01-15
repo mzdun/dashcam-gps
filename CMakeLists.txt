@@ -20,6 +20,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
 
 set(FOLDER_APPS "Apps")
+set(FOLDER_APPS_EXTRAS "Apps/Extras")
 set(FOLDER_CORE "Core")
 set(FOLDER_EXTRAS "Core/Extras")
 set(FOLDER_EXTERNAL "External")

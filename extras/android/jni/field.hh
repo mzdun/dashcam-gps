@@ -1,95 +1,157 @@
 #pragma once
 #include <jni.h>
-#include <jni/primitive.hh>
+
+#include <jni/ref.hh>
 #include <jni/type_info.hh>
-#include <jni/class.hh>
 
-namespace jni::access {
-	class field_base {
-	protected:
-		explicit field_base(jfieldID field_id) : field_id_{field_id} {}
-		JNIEnv* handle() const noexcept;
-
-		jfieldID field_id_{};
-	};
-
-	template <typename Type>
-	struct field;
-#define JNI_FIELD_ACCESS(TYPE, NAME, UNUSED)                             \
-	template <>                                                          \
-	struct field<TYPE> : field_base {                                    \
-		field(jfieldID field_id) : field_base(field_id) {}               \
-		TYPE load(jobject obj) noexcept {                                \
-			return type<TYPE>::pack(                                     \
-			    this->handle()->Get##NAME##Field(obj, this->field_id_)); \
-		}                                                                \
-		void store(jobject obj, TYPE const& value) noexcept {            \
-			this->handle()->Set##NAME##Field(obj, this->field_id_,       \
-			                                 type<TYPE>::unpack(value)); \
-		}                                                                \
+namespace jni {
+	template <typename Type, typename = void>
+	struct field_access;
+	template <typename Type, typename = void>
+	struct static_field_access;
+#define JNI_FIELD_ACCESS(TYPE, NAME, UNUSED)                                  \
+	template <>                                                               \
+	struct field_access<TYPE> {                                               \
+		static TYPE load(jobject obj, jfieldID field) noexcept {              \
+			return conv<TYPE>::pack(                                          \
+			    ref::jni_env::get_env()->Get##NAME##Field(obj, field));       \
+		}                                                                     \
+		static void store(jobject obj,                                        \
+		                  jfieldID field,                                     \
+		                  TYPE const& value) noexcept {                       \
+			ref::jni_env::get_env()->Set##NAME##Field(                        \
+			    obj, field, conv<TYPE>::unpack(value));                       \
+		}                                                                     \
+	};                                                                        \
+	template <>                                                               \
+	struct static_field_access<TYPE> {                                        \
+		static TYPE load(jclass cls, jfieldID field) noexcept {               \
+			return conv<TYPE>::pack(                                          \
+			    ref::jni_env::get_env()->GetStatic##NAME##Field(cls, field)); \
+		}                                                                     \
+		static void store(jclass cls,                                         \
+		                  jfieldID field,                                     \
+		                  TYPE const& value) noexcept {                       \
+			ref::jni_env::get_env()->SetStatic##NAME##Field(                  \
+			    cls, field, conv<TYPE>::unpack(value));                       \
+		}                                                                     \
 	};
 
 	JNI_PRIMITIVES(JNI_FIELD_ACCESS)
 #undef JNI_PRIMITIVE_TYPE
 
-	template <typename CxxClass>
-	struct object_field : field_base {
-		using wrapper = typename CxxClass::wrapper;
-		object_field(jfieldID field_id) : field_base(field_id) {}
-		static std::string name() {
-			using PACKAGE = typename CxxClass::PACKAGE;
-			return "L" + PACKAGE::packageName() + "/" + CxxClass::className() +
-			       ";";
-		}
-		wrapper load(jobject obj) noexcept {
-			return type<CxxClass>::pack(
-			    this->handle()->GetObjectField(obj, this->field_id_));
+	template <typename JNIReference, typename AcquireReleasePolicy>
+	struct field_access<
+	    ref::basic_reference<JNIReference, AcquireReleasePolicy>> {
+		using ref_type =
+		    ref::basic_reference<JNIReference, AcquireReleasePolicy>;
+
+		static ref_type load(jobject obj, jfieldID field) noexcept {
+			return ref_type{
+			    ref::jni_env::get_env()->GetObjectField(obj, field)};
 		}
 
-		void store(jobject obj, CxxClass const& value) noexcept {
-			this->handle()->SetObjectField(obj, this->field_id_,
-			                               type<CxxClass>::unpack(value));
+		static void store(jobject obj,
+		                  jfieldID field,
+		                  ref_type const& value) noexcept {
+			ref::jni_env::get_env()->SetObjectField(obj, field, value.get());
 		}
 	};
-}
 
-namespace jni::field {
-	template <typename NamePolicy, typename Storage>
-	struct ref {
-		jfieldID from(Object const& obj) {
-			if (!field_id_) from(obj.getClass());
+	template <typename JNIReference, typename AcquireReleasePolicy>
+	struct static_field_access<
+	    ref::basic_reference<JNIReference, AcquireReleasePolicy>> {
+		using ref_type =
+		    ref::basic_reference<JNIReference, AcquireReleasePolicy>;
 
-			return field_id_;
+		static ref_type load(jclass cls, jfieldID field) noexcept {
+			return ref_type{
+			    ref::jni_env::get_env()->GetStaticObjectField(cls, field)};
 		}
 
-		jfieldID from(Class const& cls) {
+		static void store(jclass cls,
+		                  jfieldID field,
+		                  ref_type const& value) noexcept {
+			ref::jni_env::get_env()->SetStaticObjectField(cls, field,
+			                                              value.get());
+		}
+	};
+
+	template <typename JNIReference,
+	          template <typename...>
+	          typename Access,
+	          typename Storage>
+	struct bound_field {
+		using field_access = Access<Storage>;
+		JNIReference ref;
+		jfieldID field;
+
+		bound_field() = delete;
+		bound_field(JNIReference ref, jfieldID field) noexcept
+		    : ref{ref}, field{field} {};
+
+		auto load() noexcept { return field_access::load(ref, field); }
+		void store(Storage const& value) noexcept {
+			return field_access::store(ref, field, value);
+		}
+	};
+
+	template <typename Name, typename Storage>
+	struct field {
+		jfieldID from(ref::local<jobject> const& obj) {
 			if (!field_id_) {
-				field_id_ = cls.GetFieldID<Storage>(NamePolicy::get_name());
+				return from(ref::get_class(obj));
 			}
 
 			return field_id_;
 		}
 
-		auto load(Object const& self) {
-			this->from(self);
-			return self.loadById(access::field<Storage>(field_id_));
+		jfieldID from(ref::local<jclass> const& cls) {
+			if (!field_id_) {
+				field_id_ = ref::get_field_id<Name, Storage>(cls.get());
+			}
+
+			return field_id_;
 		}
 
-		void store(Object const& self, Storage const& value) {
-			this->from(self);
-			return self.storeById(access::field<Storage>(field_id_), value);
-		}
+		template <typename JNIReference>
+		using bound_field =
+		    jni::bound_field<JNIReference, field_access, Storage>;
 
-	private:
-		jfieldID field_id_ = 0;
+		template <typename JNIReference, typename Policy>
+		bound_field<JNIReference> bind(
+		    ref::basic_reference<JNIReference, Policy> const& obj) noexcept {
+			return {obj.get(), from(obj)};
+		};
+
+	protected:
+		jfieldID field_id_{nullptr};
 	};
-}
 
-#define JNI_FIELD_REF(TYPE, NAME)                                    \
-	static auto& NAME() noexcept {                                   \
-		struct name__ {                                              \
-			static char const* get_name() noexcept { return #NAME; } \
-		};                                                           \
-		static jni::field::ref<name__, TYPE> ref__;                  \
-		return ref__;                                                \
-	}
+	template <typename Name, typename Storage>
+	struct static_field {
+		jfieldID from(ref::local<jclass> const& cls) {
+			if (!field_id_) {
+				field_id_ = ref::get_static_field_id<Name, Storage>(cls.get());
+			}
+
+			return field_id_;
+		}
+
+		using bound_field =
+		    jni::bound_field<jclass, static_field_access, Storage>;
+
+		template <typename Policy>
+		bound_field bind(
+		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
+			return {cls.get(), this->from(cls)};
+		};
+
+	protected:
+		jfieldID field_id_{nullptr};
+	};
+}  // namespace jni
+
+#define JNI_FIELD_REF(VAR, NAME, TYPE) \
+	DEFINE_NAME(VAR##_name__, NAME);   \
+	static jni::field::ref<VAR##_name__, TYPE> VAR;

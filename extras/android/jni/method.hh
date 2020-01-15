@@ -1,195 +1,268 @@
 #pragma once
 #include <jni.h>
-#include <jni/primitive.hh>
+
+#include <algorithm>
+#include <jni/ref.hh>
 #include <jni/type_info.hh>
-#include <jni/class.hh>
 
-namespace jni::access {
-	class call_base {
-	protected:
-		explicit call_base(jmethodID method_id) : method_id_{method_id} {}
-		JNIEnv* handle() const noexcept;
-
-		jmethodID method_id_{};
-	};
-
+namespace jni {
 	template <typename Type>
-	struct method;
-#define JNI_METHOD_ACCESS(TYPE, NAME, UNUSED)                           \
-	template <>                                                         \
-	struct method<TYPE> : call_base {                                   \
-		method(jmethodID method_id) : call_base(method_id) {}           \
-		template <typename... Args>                                     \
-		TYPE call(jobject obj, Args... args) noexcept {                 \
-			return type<TYPE>::pack(this->handle()->Call##NAME##Method( \
-			    obj, this->method_id_, type<Args>::unpack(args)...));   \
-		}                                                               \
+	struct method_invocation;
+#define JNI_METHOD_INVOCATION(TYPE, NAME, UNUSED)               \
+	template <>                                                 \
+	struct method_invocation<TYPE> {                            \
+		template <typename... Args>                             \
+		static TYPE call(jobject obj,                           \
+		                 jmethodID method,                      \
+		                 Args... args) noexcept {               \
+			return conv<TYPE>::pack(                            \
+			    ref::jni_env::get_env()->Call##NAME##Method(    \
+			        obj, method, conv<Args>::unpack(args)...)); \
+		}                                                       \
 	};
 
-	JNI_PRIMITIVES(JNI_METHOD_ACCESS)
-#undef JNI_METHOD_ACCESS
+	JNI_PRIMITIVES(JNI_METHOD_INVOCATION)
+#undef JNI_METHOD_INVOCATION
 
 	template <>
-	struct method<void> : call_base {
-		method(jmethodID method_id) : call_base(method_id) {}
+	struct method_invocation<void> {
 		template <typename... Args>
-		void call(jobject obj, Args... args) noexcept {
-			this->handle()->CallVoidMethod(obj, this->method_id_,
-			                               type<Args>::unpack(args)...);
+		static void call(jobject obj, jmethodID method, Args... args) noexcept {
+			ref::jni_env::get_env()->CallVoidMethod(
+			    obj, method, conv<Args>::unpack(args)...);
 		}
 	};
 
 	template <typename Type>
-	struct static_method;
-#define JNI_STATIC_METHOD_ACCESS(TYPE, NAME, UNUSED)                          \
-	template <>                                                               \
-	struct static_method<TYPE> : call_base {                                  \
-		static_method(jmethodID method_id) : call_base(method_id) {}          \
-		template <typename... Args>                                           \
-		TYPE call(jclass cls, Args... args) noexcept {                        \
-			return type<TYPE>::pack(this->handle()->CallStatic##NAME##Method( \
-			    cls, this->method_id_, type<Args>::unpack(args)...));         \
-		}                                                                     \
+	struct static_method_invocation;
+#define JNI_STATIC_METHOD_INVOCATION(TYPE, NAME, UNUSED)           \
+	template <>                                                    \
+	struct static_method_invocation<TYPE> {                        \
+		template <typename... Args>                                \
+		static TYPE call(jclass cls,                               \
+		                 jmethodID method,                         \
+		                 Args... args) noexcept {                  \
+			return conv<TYPE>::pack(                               \
+			    ref::jni_env::get_env()->CallStatic##NAME##Method( \
+			        cls, method, conv<Args>::unpack(args)...));    \
+		}                                                          \
 	};
 
-	JNI_PRIMITIVES(JNI_STATIC_METHOD_ACCESS)
-#undef JNI_STATIC_METHOD_ACCESS
+	JNI_PRIMITIVES(JNI_STATIC_METHOD_INVOCATION)
+#undef JNI_STATIC_METHOD_INVOCATION
 
 	template <>
-	struct static_method<void> : call_base {
-		static_method(jmethodID method_id) : call_base(method_id) {}
+	struct static_method_invocation<void> {
 		template <typename... Args>
-		void call(jclass cls, Args... args) noexcept {
-			this->handle()->CallStaticVoidMethod(cls, this->method_id_,
-			                                     type<Args>::unpack(args)...);
+		static void call(jclass cls, jmethodID method, Args... args) noexcept {
+			ref::jni_env::get_env()->CallStaticVoidMethod(
+			    cls, method, conv<Args>::unpack(args)...);
 		}
 	};
-}
 
-namespace jni::method::holder {
-	template <typename Final>
-	struct base {
-		jmethodID from(Object const& obj) {
+	template <typename Type>
+	struct prefered_return {
+		using type = Type;
+	};
+
+	template <typename Type>
+	using prefered_return_type = typename prefered_return<Type>::type;
+
+	template <>
+	struct prefered_return<jobject> {
+		using type = ref::local<jobject>;
+	};
+	template <>
+	struct prefered_return<jclass> {
+		using type = ref::local<jclass>;
+	};
+	template <>
+	struct prefered_return<jthrowable> {
+		using type = ref::local<jthrowable>;
+	};
+	template <>
+	struct prefered_return<jstring> {
+		using type = ref::local<jstring>;
+	};
+	template <>
+	struct prefered_return<jarray> {
+		using type = ref::local<jarray>;
+	};
+	template <>
+	struct prefered_return<jbooleanArray> {
+		using type = ref::local<jbooleanArray>;
+	};
+	template <>
+	struct prefered_return<jbyteArray> {
+		using type = ref::local<jbyteArray>;
+	};
+	template <>
+	struct prefered_return<jcharArray> {
+		using type = ref::local<jcharArray>;
+	};
+	template <>
+	struct prefered_return<jshortArray> {
+		using type = ref::local<jshortArray>;
+	};
+	template <>
+	struct prefered_return<jintArray> {
+		using type = ref::local<jintArray>;
+	};
+	template <>
+	struct prefered_return<jlongArray> {
+		using type = ref::local<jlongArray>;
+	};
+	template <>
+	struct prefered_return<jfloatArray> {
+		using type = ref::local<jfloatArray>;
+	};
+	template <>
+	struct prefered_return<jdoubleArray> {
+		using type = ref::local<jdoubleArray>;
+	};
+	template <>
+	struct prefered_return<jobjectArray> {
+		using type = ref::local<jobjectArray>;
+	};
+
+	template <typename ReturnType>
+	struct constructor_invocation {
+		using preferred = prefered_return_type<ReturnType>;
+		template <typename... Args>
+		static preferred call(jclass obj,
+		                      jmethodID method,
+		                      Args... args) noexcept {
+			return conv<preferred>::pack(ref::jni_env::get_env()->NewObject(
+			    obj, method, conv<Args>::unpack(args)...));
+		}
+	};
+
+	template <typename JNIReference,
+	          template <typename>
+	          typename Invocation,
+	          typename Prototype>
+	struct bound_call;
+
+	template <typename JNIReference,
+	          template <typename>
+	          typename Invocation,
+	          typename Ret,
+	          typename... Args>
+	struct bound_call<JNIReference, Invocation, Ret(Args...)> {
+		using invocation = Invocation<Ret>;
+		JNIReference jni_ref;
+		jmethodID method;
+
+		bound_call() = delete;
+		bound_call(JNIReference jni_ref, jmethodID method) noexcept
+		    : jni_ref{jni_ref}, method{method} {};
+
+		Ret operator()(Args... args) && {
+			return invocation::call(jni_ref, method, args...);
+		}
+	};
+
+	template <typename Name, typename Prototype>
+	struct method {
+		jmethodID from(ref::local<jobject> const& obj) {
 			if (!method_id_) {
-				static_cast<Final*>(this)->from(obj.getClass());
+				return from(ref::get_class(obj));
 			}
 
 			return method_id_;
 		}
 
+		jmethodID from(ref::local<jclass> const& cls) {
+			if (!method_id_) {
+				method_id_ = ref::get_method_id<Name, Prototype>(cls.get());
+			}
+
+			return method_id_;
+		}
+
+		template <typename JNIReference>
+		using bound_call =
+		    jni::bound_call<JNIReference, method_invocation, Prototype>;
+
+		template <typename JNIReference, typename Policy>
+		bound_call<JNIReference> bind(
+		    ref::basic_reference<JNIReference, Policy> const& obj) noexcept {
+			return {obj.get(), from(obj)};
+		};
+
 	protected:
 		jmethodID method_id_{nullptr};
 	};
 
-	template <typename NamePolicy, typename Prototype>
-	struct virt : base<virt<NamePolicy, Prototype>> {
-		using base<virt<NamePolicy, Prototype>>::from;
-		jmethodID from(Class const& cls) {
-			if (!this->method_id_) {
-				this->method_id_ =
-				    cls.GetMethodID<Prototype>(NamePolicy::get_name());
+	template <typename Name, typename Prototype>
+	struct static_method {
+		jmethodID from(ref::local<jclass> const& cls) {
+			if (!method_id_) {
+				method_id_ =
+				    ref::get_static_method_id<Name, Prototype>(cls.get());
 			}
 
-			return this->method_id_;
+			return method_id_;
 		}
+
+		using bound_call =
+		    jni::bound_call<jclass, static_method_invocation, Prototype>;
+
+		template <typename Policy>
+		bound_call bind(
+		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
+			return {cls.get(), from(cls)};
+		};
+
+	protected:
+		jmethodID method_id_{nullptr};
 	};
 
-	template <typename NamePolicy, typename Prototype>
-	struct stat : base<stat<NamePolicy, Prototype>> {
-		using base<stat<NamePolicy, Prototype>>::from;
-		jmethodID from(Class const& cls) {
-			if (!this->method_id_) {
-				this->method_id_ =
-				    cls.GetStaticMethodID<Prototype>(NamePolicy::get_name());
+	template <typename Prototype>
+	struct constructor;
+
+	template <typename Type>
+	struct void2object {
+		using type = Type;
+	};
+
+	template <>
+	struct void2object<void> {
+		using type = ref::local<jobject>;
+	};
+
+	template <typename Ret, typename... Args>
+	struct constructor<Ret(Args...)> {
+		using real_ret = typename void2object<Ret>::type;
+		jmethodID from(ref::local<jclass> const& cls) {
+			if (!method_id_) {
+				method_id_ = ref::get_constructor_id<Args...>(cls.get());
 			}
 
-			return this->method_id_;
-		}
-	};
-}
-namespace jni::method {
-	template <typename NamePolicy, typename Func>
-	struct ref_base;
-
-	template <typename NamePolicy, typename Ret, typename... Args>
-	struct ref_base<NamePolicy, Ret(Args...)>
-	    : holder::virt<NamePolicy, Ret(Args...)> {
-		Ret call(Object const& self, Args... args) {
-			this->from(self);
-			return self.callById(access::method<Ret>(this->method_id_),
-			                     args...);
-		}
-	};
-
-	template <typename NamePolicy, typename... Args>
-	struct ref_base<NamePolicy, void(Args...)>
-	    : holder::virt<NamePolicy, void(Args...)> {
-		void call(Object const& self, Args... args) {
-			this->from(self);
-			self.callById(access::method<void>(this->method_id_), args...);
+			return method_id_;
 		}
 
-		Object new_object(Class const& cls, Args... args) {
-			this->from(cls);
-			return cls.newById(this->method_id_, args...);
-		}
+		using bound_call =
+		    jni::bound_call<jclass, constructor_invocation, real_ret(Args...)>;
+
+		template <typename Policy>
+		bound_call bind(
+		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
+			return {cls.get(), from(cls)};
+		};
+
+	protected:
+		jmethodID method_id_{nullptr};
 	};
+}  // namespace jni
 
-	template <typename NamePolicy, typename Func>
-	struct ref : ref_base<NamePolicy, Func> {};
+#define JNI_METHOD_REF(VAR, NAME, PROTOTYPE) \
+	DEFINE_NAME(VAR##_name__, NAME);         \
+	static jni::method<VAR##_name__, PROTOTYPE> VAR;
 
-	struct init_name {
-		static const char* get_name() noexcept { return "<init>"; }
-	};
-}
+#define JNI_CONSTRUCTOR_REF(VAR, PROTOTYPE) \
+	static jni::constructor<PROTOTYPE> VAR;
 
-namespace jni::static_method {
-	template <typename NamePolicy, typename Func>
-	struct ref_base;
-
-	template <typename NamePolicy, typename Ret, typename... Args>
-	struct ref_base<NamePolicy, Ret(Args...)>
-	    : method::holder::stat<NamePolicy, Ret(Args...)> {
-		Ret call(Object const& self, Args... args) {
-			this->from(self);
-			return self.callById(access::method<Ret>(this->method_id_),
-			                     args...);
-		}
-	};
-
-	template <typename NamePolicy, typename... Args>
-	struct ref_base<NamePolicy, void(Args...)>
-	    : method::holder::stat<NamePolicy, void(Args...)> {
-		void call(Object const& self, Args... args) {
-			this->from(self);
-			self.callById(access::method<void>(this->method_id_), args...);
-		}
-	};
-
-	template <typename NamePolicy, typename Func>
-	struct ref : ref_base<NamePolicy, Func> {};
-}
-
-#define JNI_METHOD_REF(NAME, PROTOTYPE)                              \
-	static auto& NAME() noexcept {                                   \
-		struct name__ {                                              \
-			static char const* get_name() noexcept { return #NAME; } \
-		};                                                           \
-		static jni::method::ref<name__, PROTOTYPE> ref__;            \
-		return ref__;                                                \
-	}
-
-#define JNI_CONSTRUCTOR_REF(PROTOTYPE)                                    \
-	static auto& constructor() noexcept {                                 \
-		static jni::method::ref<jni::method::init_name, PROTOTYPE> ref__; \
-		return ref__;                                                     \
-	}
-
-#define JNI_STATIC_METHOD_REF(NAME, PROTOTYPE)                       \
-	static auto& NAME() noexcept {                                   \
-		struct name__ {                                              \
-			static char const* get_name() noexcept { return #NAME; } \
-		};                                                           \
-		static jni::static_method::ref<name__, PROTOTYPE> ref__;     \
-		return ref__;                                                \
-	}
+#define JNI_STATIC_METHOD_REF(VAR, NAME, PROTOTYPE) \
+	DEFINE_NAME(VAR##_name__, NAME);                \
+	static jni::static_method<VAR##_name__, PROTOTYPE> VAR;

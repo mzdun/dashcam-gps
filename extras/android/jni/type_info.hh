@@ -1,30 +1,37 @@
-//
-// Created by Marcin on 13.01.2020.
-//
-
 #pragma once
 
-#include <string>
+#include <jni/fixed_string.hh>
 #include <jni/primitive.hh>
-#include <jni/object.hh>
 
-#define DEFINE_PACKAGE(NAME)                              \
-	struct PACKAGE {                                      \
-		static std::string packageName() { return NAME; } \
+#define DEFINE_PACKAGE(NAME)                            \
+	struct PACKAGE {                                    \
+		static constexpr auto package_name() noexcept { \
+			return jni::fixed_string{NAME};             \
+		}                                               \
 	}
 
-#define DEFINE_NAME(CLS, NAME)                                   \
-	struct CLS {                                                 \
-		static char const* get_name() noexcept { return #NAME; } \
+#define DEFINE_NAME(CLS, NAME)                      \
+	struct CLS {                                    \
+		static constexpr auto get_name() noexcept { \
+			return jni::fixed_string{NAME};         \
+		}                                           \
 	}
 
 namespace jni {
-	template <typename Type>
+	template <typename Type, typename = void>
 	struct type;
+	template <typename Type, typename = void>
+	struct conv;
 #define SIMPLE_TYPE(TYPE, JNI_TYPE, CODE)                    \
 	template <>                                              \
 	struct type<TYPE> {                                      \
-		static std::string name() { return CODE; }           \
+		static constexpr auto name() noexcept {              \
+			return jni::fixed_string{CODE};                  \
+		}                                                    \
+	};                                                       \
+                                                             \
+	template <>                                              \
+	struct conv<TYPE> {                                      \
 		static JNI_TYPE unpack(TYPE const& wrapped) {        \
 			return static_cast<JNI_TYPE>(wrapped);           \
 		}                                                    \
@@ -35,36 +42,28 @@ namespace jni {
 #define PRIMITIVE_TYPE(JNI_TYPE, CODE)                       \
 	template <>                                              \
 	struct type<JNI_TYPE> {                                  \
-		static std::string name() { return CODE; }           \
+		static constexpr auto name() noexcept {              \
+			return jni::fixed_string{CODE};                  \
+		}                                                    \
+	};                                                       \
+                                                             \
+	template <>                                              \
+	struct conv<JNI_TYPE> {                                  \
 		static JNI_TYPE unpack(JNI_TYPE jvm) { return jvm; } \
 		static JNI_TYPE pack(JNI_TYPE jvm) { return jvm; }   \
 	}
-
-	template <typename CxxClass>
-	struct object_type {
-		using wrapper = typename CxxClass::wrapper;
-		static std::string name() {
-			using PACKAGE = typename CxxClass::PACKAGE;
-			return "L" + PACKAGE::packageName() + "/" + CxxClass::className() +
-			       ";";
-		}
-		static jobject unpack(Object const& wrapped) {
-			return static_cast<jobject>(wrapped);
-		}
-		static wrapper pack(jobject jvm) { return {Object{jvm}}; }
-	};
 
 #define JNI_PRIMITIVE_TYPE(JNI_TYPE, UNUSED, CODE) \
 	PRIMITIVE_TYPE(JNI_TYPE, CODE);
 	JNI_PRIMITIVES(JNI_PRIMITIVE_TYPE)
 #undef JNI_PRIMITIVE_TYPE
-	OBJECT_TYPE(Object, "Ljava/lang/Object;");
 
 	template <>
 	struct type<void> {
-		static std::string name() { return "V"; }
+		static constexpr auto name() noexcept { return fixed_string{"V"}; }
 	};
 
+	PRIMITIVE_TYPE(jobject, "Ljava/lang/Object;");
 	PRIMITIVE_TYPE(jstring, "Ljava/lang/String;");
 
 	template <typename Type>
@@ -77,14 +76,16 @@ namespace jni {
 	struct array;
 	template <typename Element>
 	struct type<array<Element>> {
-		static std::string name() { return "[" + type<Element>::name(); }
+		static constexpr auto name() noexcept {
+			return "[" + type<Element>::name();
+		}
 	};
 
 	template <typename Return, typename... Args>
 	struct type<Return(Args...)> {
-		static std::string name() {
-			return "(" + (type<Args>::name() + ... + std::string{}) + ")" +
+		static constexpr auto name() noexcept {
+			return fixed_string{"("} + (type<Args>::name() + ... + "") + ")" +
 			       type<Return>::name();
 		}
 	};
-}
+}  // namespace jni
