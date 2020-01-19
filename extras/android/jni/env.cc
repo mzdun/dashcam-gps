@@ -62,8 +62,3 @@ namespace jni {
 		}
 	}
 };  // namespace jni
-
-extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* /* reserved */) {
-	jni::Env::on_load(vm);
-	return JNI_VERSION_1_6;
-}
