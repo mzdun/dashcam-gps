@@ -6,7 +6,7 @@
 #include <jni/type_info.hh>
 
 namespace jni {
-	template <typename Type>
+	template <typename Type, typename = void>
 	struct method_invocation;
 #define JNI_METHOD_INVOCATION(TYPE, NAME, UNUSED)               \
 	template <>                                                 \
@@ -33,7 +33,7 @@ namespace jni {
 		}
 	};
 
-	template <typename Type>
+	template <typename Type, typename = void>
 	struct static_method_invocation;
 #define JNI_STATIC_METHOD_INVOCATION(TYPE, NAME, UNUSED)           \
 	template <>                                                    \
@@ -125,7 +125,7 @@ namespace jni {
 		using type = ref::local<jobjectArray>;
 	};
 
-	template <typename ReturnType>
+	template <typename ReturnType, typename = void>
 	struct constructor_invocation {
 		using preferred = prefered_return_type<ReturnType>;
 		template <typename... Args>
@@ -138,13 +138,13 @@ namespace jni {
 	};
 
 	template <typename JNIReference,
-	          template <typename>
+	          template <typename, typename>
 	          typename Invocation,
 	          typename Prototype>
 	struct bound_call;
 
 	template <typename JNIReference,
-	          template <typename>
+	          template <typename, typename=void>
 	          typename Invocation,
 	          typename Ret,
 	          typename... Args>
