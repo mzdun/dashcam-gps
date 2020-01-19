@@ -102,9 +102,7 @@ namespace com::midnightbits::dashcam_gps_player::data {
 	}
 
 	java::util::List<Library::Filter> Library::Filters() const noexcept {
-		DEFINE_NAME(name, "Filters");
-		static jni::field<name, java::util::List<Filter>> var{};
-
+		JNI_FIELD_REF(var, "Filters", java::util::List<Filter>);
 		return var.bind(obj()).load();
 	}
 

@@ -154,4 +154,4 @@ namespace jni {
 
 #define JNI_FIELD_REF(VAR, NAME, TYPE) \
 	DEFINE_NAME(VAR##_name__, NAME);   \
-	static jni::field::ref<VAR##_name__, TYPE> VAR;
+	static jni::field<VAR##_name__, TYPE> VAR;

@@ -25,6 +25,8 @@ set(FOLDER_CORE "Core")
 set(FOLDER_EXTRAS "Core/Extras")
 set(FOLDER_EXTERNAL "External")
 
+find_package(JNI)
+
 add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(extras)
