@@ -44,8 +44,10 @@ namespace jni {
 	};
 
 	template <typename CxxClass>
-	struct type<CxxClass,
-	            std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	struct type<
+	    CxxClass,
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		static constexpr auto name() noexcept {
 			using PACKAGE = typename CxxClass::PACKAGE;
 			constexpr auto name = 'L' + PACKAGE::package_name() + '/' +

@@ -27,6 +27,9 @@ namespace mgps {
 		void add_directory(fs::path const&);
 		void after_update();
 		std::vector<trip> build(page kind, ch::milliseconds max_gap) const;
+		std::vector<media_file> const& footage() const noexcept {
+			return footage_;
+		}
 		media_file const* footage(video::media_clip const& ref) const noexcept;
 
 	private:

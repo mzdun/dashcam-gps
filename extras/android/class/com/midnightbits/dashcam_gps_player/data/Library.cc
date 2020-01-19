@@ -83,12 +83,84 @@ namespace com::midnightbits::dashcam_gps_player::data {
 		auto Filters = parent.Filters();
 		Filters.clear();
 		int id = 0;
+
+		auto env = jni::Env::get().handle();
+
+		std::vector<MediaFile> footage{};
+		{
+			auto Clips = Clip::values();
+			auto const& lib_footage = lib_.footage();
+			footage.reserve(lib_footage.size());
+			for (auto const& movie : lib_footage) {
+				auto type = size_t(movie.type);
+				if (type >= Clips.size()) {
+					type = size_t(mgps::clip::other);
+					if (type >= Clips.size()) {
+						type = 0;
+					}
+				}
+				auto const& clip = Clips[type];
+				jni::ref::local<jstring> path{
+				    env->NewStringUTF(movie.filename.string().c_str())};
+
+				auto jmovie = MediaFile::new_object(path, clip);
+				footage.emplace_back(jmovie);
+			}
+		}
+
 		for (auto const& view : views_) {
 			auto info = data::Library::Filter::new_object(
 			    id, int(view.kind), view.title, view.icon,
 			    int(view.trips.size()));
 			Filters.add(info);
 		}
+	}
+
+	std::vector<Library::Clip> Library::Clip::values() {
+		constexpr auto prototype = "()[" + jni::type<Clip>::name();
+		auto env = jni::Env::get().handle();
+		auto cls = jni::ref::find_class<Clip>();
+		static auto valuesId =
+		    env->GetStaticMethodID(cls.get(), "values", prototype.c_str());
+
+		auto values = jni::ref::local<jobjectArray>{
+		    jobjectArray(env->CallStaticObjectMethod(cls.get(), valuesId))};
+
+		std::vector<Library::Clip> clips;
+		auto const count = env->GetArrayLength(values.get());
+		clips.reserve(size_t(count));
+		for (int index = 0; index < count; ++index) {
+			auto value = jni::ref::local<>{
+			    env->GetObjectArrayElement(values.get(), index)};
+			clips.emplace_back(std::move(value));
+		}
+		return clips;
+	}
+
+	Library::MediaFile Library::MediaFile::new_object(
+	    jni::ref::local<jstring> path,
+	    Clip const& clip) {
+		static jni::ref::binding_global<jclass> cls{
+		    jni::ref::find_class<MediaFile>()};
+		static jni::constructor<void(jstring, Clip)> init{};
+		return {cls[init](path.get(), clip)};
+	}
+
+	Library::MediaClip Library::MediaClip::new_object(jlong offset,
+	                                                  jlong durationMS,
+	                                                  MediaFile const& file) {
+		static jni::ref::binding_global<jclass> cls{
+		    jni::ref::find_class<MediaClip>()};
+		static jni::constructor<void(jlong, jlong, MediaFile const&)> init{};
+		return {cls[init](offset, durationMS, file)};
+	}
+
+	Library::Trip Library::Trip::new_object(
+	    java::util::List<MediaClip> const& playlist) {
+		static jni::ref::binding_global<jclass> cls{
+		    jni::ref::find_class<Trip>()};
+		static jni::constructor<void(java::util::List<MediaClip> const&)> init{};
+		return {cls[init](playlist)};
 	}
 
 	Library::Filter Library::Filter::new_object(int id,
