@@ -41,6 +41,8 @@ set(CLASS_SRC
     class/com/midnightbits/dashcam_gps_player/PACKAGE.hh
     class/com/midnightbits/dashcam_gps_player/R.cc
     class/com/midnightbits/dashcam_gps_player/R.hh
+    class/java/util/ArrayList.hh
+    class/java/util/Date.hh
     class/java/util/List.hh
     class/java/util/PACKAGE.hh
 )

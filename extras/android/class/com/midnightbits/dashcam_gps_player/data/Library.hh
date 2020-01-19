@@ -1,6 +1,7 @@
 #pragma once
 
 #include <com/midnightbits/dashcam_gps_player/data/PACKAGE.hh>
+#include <java/util/Date.hh>
 #include <java/util/List.hh>
 #include <vector>
 
@@ -56,7 +57,8 @@ namespace com::midnightbits::dashcam_gps_player::data {
 			using parent = jni::named_type_base<Library_Trip_name, PACKAGE>;
 			using parent::parent;
 
-			static Trip new_object(java::util::List<MediaClip> const& playlist);
+			static Trip new_object(java::util::Date const& start,
+			                       java::util::List<MediaClip> const& playlist);
 		};
 
 		struct Filter : jni::named_type_base<Library_Filter_name, PACKAGE> {
@@ -67,7 +69,7 @@ namespace com::midnightbits::dashcam_gps_player::data {
 			                         int page,
 			                         int title,
 			                         int icon,
-			                         int count);
+			                         java::util::List<Trip> const& trips);
 		};
 
 		java::util::List<Filter> Filters() const noexcept;

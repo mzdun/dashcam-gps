@@ -36,9 +36,9 @@ namespace java::util {
 		}
 	};
 
-	template <typename Item>
-	struct List : public NonGenericList<List_name, PACKAGE> {
-		using parent = NonGenericList<List_name, PACKAGE>;
+	template <typename Item, typename NonGeneric = NonGenericList<>>
+	struct List : public NonGeneric {
+		using parent = NonGeneric;
 		using parent::obj;
 		using parent::parent;
 

@@ -1,5 +1,6 @@
 #include <com/midnightbits/dashcam_gps_player/R.hh>
 #include <com/midnightbits/dashcam_gps_player/data/Library.hh>
+#include <java/util/ArrayList.hh>
 #include <jni/env.hh>
 #include <log.hh>
 #include <memory>
@@ -82,7 +83,6 @@ namespace com::midnightbits::dashcam_gps_player::data {
 	void Library::DataHolder::export_to_java(Library& parent) {
 		auto Filters = parent.Filters();
 		Filters.clear();
-		int id = 0;
 
 		auto env = jni::Env::get().handle();
 
@@ -108,10 +108,18 @@ namespace com::midnightbits::dashcam_gps_player::data {
 			}
 		}
 
+		int id = 0;
 		for (auto const& view : views_) {
+			auto trips = java::util::ArrayList<Trip>::new_object();
+			for (auto const& trip : view.trips) {
+				auto playlist = java::util::ArrayList<MediaClip>::new_object();
+				auto start = java::util::Date::new_object(trip.start.time_since_epoch());
+				auto jtrip = Trip::new_object(start, playlist);
+				trips.add(jtrip);
+			}
+
 			auto info = data::Library::Filter::new_object(
-			    id, int(view.kind), view.title, view.icon,
-			    int(view.trips.size()));
+			    ++id, int(view.kind), view.title, view.icon, trips);
 			Filters.add(info);
 		}
 	}
@@ -156,22 +164,29 @@ namespace com::midnightbits::dashcam_gps_player::data {
 	}
 
 	Library::Trip Library::Trip::new_object(
+	    java::util::Date const& start,
 	    java::util::List<MediaClip> const& playlist) {
 		static jni::ref::binding_global<jclass> cls{
 		    jni::ref::find_class<Trip>()};
-		static jni::constructor<void(java::util::List<MediaClip> const&)> init{};
-		return {cls[init](playlist)};
+		static jni::constructor<void(java::util::Date const&,
+		                             java::util::List<MediaClip> const&)>
+		    init{};
+		return {cls[init](start, playlist)};
 	}
 
-	Library::Filter Library::Filter::new_object(int id,
-	                                            int page,
-	                                            int title,
-	                                            int icon,
-	                                            int count) {
+	Library::Filter Library::Filter::new_object(
+	    int id,
+	    int page,
+	    int title,
+	    int icon,
+	    java::util::List<Trip> const& trips) {
 		static jni::ref::binding_global<jclass> cls{
 		    jni::ref::find_class<Filter>()};
-		static jni::constructor<void(jint, jint, jint, jint, jint)> init{};
-		return {cls[init](id, page, title, icon, count)};
+
+		static jni::constructor<void(jint, jint, jint, jint,
+		                             java::util::List<Trip> const&)>
+		    init{};
+		return {cls[init](id, page, title, icon, trips)};
 	}
 
 	java::util::List<Library::Filter> Library::Filters() const noexcept {
