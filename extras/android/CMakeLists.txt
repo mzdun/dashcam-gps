@@ -1,3 +1,5 @@
+add_subdirectory(filesystem-polyfill)
+
 include(warnings)
 add_library(jni STATIC
     jni/env.cc
@@ -29,3 +31,21 @@ else()
     target_link_libraries(jni PUBLIC ${JNI_LIBRARIES})
     target_include_directories(jni PUBLIC ${JNI_INCLUDE_DIRS})
 endif()
+
+set(CLASS_SRC
+    class/com/midnightbits/dashcam_gps_player/data/Library.cc
+    class/com/midnightbits/dashcam_gps_player/data/Library.hh
+    class/com/midnightbits/dashcam_gps_player/data/PACKAGE.hh
+    class/com/midnightbits/dashcam_gps_player/PACKAGE.hh
+    class/com/midnightbits/dashcam_gps_player/R.cc
+    class/com/midnightbits/dashcam_gps_player/R.hh
+    class/java/util/List.hh
+    class/java/util/PACKAGE.hh
+)
+add_library(mgps-droid STATIC ${CLASS_SRC})
+set_target_properties(mgps-droid PROPERTIES FOLDER ${FOLDER_APPS_EXTRAS})
+target_link_libraries(mgps-droid PUBLIC jni mgps mgps-70mai droid++fs)
+target_include_directories(mgps-droid PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/class)
+
+include(dir_filters)
+dir_filters(CLASS_SRC)
