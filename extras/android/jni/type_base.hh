@@ -57,8 +57,10 @@ namespace jni {
 	};
 
 	template <typename CxxClass>
-	struct conv<CxxClass,
-	            std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	struct conv<
+	    CxxClass,
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		static jobject unpack(CxxClass const& wrapped) {
 			return wrapped.obj().get();
 		}
@@ -68,7 +70,8 @@ namespace jni {
 	template <typename CxxClass>
 	struct method_invocation<
 	    CxxClass,
-	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		template <typename... Args>
 		static CxxClass call(jobject obj,
 		                     jmethodID method,
@@ -81,12 +84,13 @@ namespace jni {
 	template <typename CxxClass>
 	struct static_method_invocation<
 	    CxxClass,
-	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		template <typename... Args>
 		static CxxClass call(jclass cls,
 		                     jmethodID method,
 		                     Args... args) noexcept {
-			return CxxClass{ref::jni_env::get_env()->CallStaticVoidMethod(
+			return CxxClass{ref::jni_env::get_env()->CallStaticObjectMethod(
 			    cls, method, conv<Args>::unpack(args)...)};
 		}
 	};
@@ -94,7 +98,8 @@ namespace jni {
 	template <typename CxxClass>
 	struct field_access<
 	    CxxClass,
-	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		static CxxClass load(jobject obj, jfieldID field) noexcept {
 			return CxxClass{
 			    ref::jni_env::get_env()->GetObjectField(obj, field)};
@@ -111,7 +116,8 @@ namespace jni {
 	template <typename CxxClass>
 	struct static_field_access<
 	    CxxClass,
-	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass>>> {
+	    std::enable_if_t<std::is_base_of_v<type_base, CxxClass> &&
+	                     std::is_same_v<CxxClass, std::decay_t<CxxClass>>>> {
 		static CxxClass load(jclass cls, jfieldID field) noexcept {
 			return CxxClass{
 			    ref::jni_env::get_env()->GetStaticObjectField(cls, field)};

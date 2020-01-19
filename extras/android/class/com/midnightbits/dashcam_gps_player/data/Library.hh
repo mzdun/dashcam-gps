@@ -1,6 +1,7 @@
 #pragma once
 
 #include <com/midnightbits/dashcam_gps_player/data/PACKAGE.hh>
+#include <java/time/Duration.hh>
 #include <java/util/Date.hh>
 #include <java/util/List.hh>
 #include <vector>
@@ -58,6 +59,7 @@ namespace com::midnightbits::dashcam_gps_player::data {
 			using parent::parent;
 
 			static Trip new_object(java::util::Date const& start,
+			                       java::time::Duration const& duration,
 			                       java::util::List<MediaClip> const& playlist);
 		};
 

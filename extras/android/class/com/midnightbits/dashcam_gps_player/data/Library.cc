@@ -113,8 +113,11 @@ namespace com::midnightbits::dashcam_gps_player::data {
 			auto trips = java::util::ArrayList<Trip>::new_object();
 			for (auto const& trip : view.trips) {
 				auto playlist = java::util::ArrayList<MediaClip>::new_object();
-				auto start = java::util::Date::new_object(trip.start.time_since_epoch());
-				auto jtrip = Trip::new_object(start, playlist);
+				auto start =
+				    java::util::Date::new_object(trip.start.time_since_epoch());
+				auto duration =
+				    java::time::Duration::ofMillis(trip.playlist.duration);
+				auto jtrip = Trip::new_object(start, duration, playlist);
 				trips.add(jtrip);
 			}
 
@@ -165,13 +168,15 @@ namespace com::midnightbits::dashcam_gps_player::data {
 
 	Library::Trip Library::Trip::new_object(
 	    java::util::Date const& start,
+	    java::time::Duration const& duration,
 	    java::util::List<MediaClip> const& playlist) {
 		static jni::ref::binding_global<jclass> cls{
 		    jni::ref::find_class<Trip>()};
 		static jni::constructor<void(java::util::Date const&,
+		                             java::time::Duration const&,
 		                             java::util::List<MediaClip> const&)>
 		    init{};
-		return {cls[init](start, playlist)};
+		return {cls[init](start, duration, playlist)};
 	}
 
 	Library::Filter Library::Filter::new_object(
