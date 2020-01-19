@@ -1,21 +1,20 @@
 #include <com/midnightbits/dashcam_gps_player/R.hh>
-#include <jni/field.hh>
-#include <jni/ref.hh>
+#include <jni/binding_ref.hh>
 
 namespace com::midnightbits::dashcam_gps_player {
 	using namespace jni;
 
 	template <auto& name>
 	static auto find_class() {
-		return ref::local<jclass>{
+		return ref::binding_local<jclass>{
 		    ref::jni_env::get_env()->FindClass(name.c_str())};
 	}
 
-#define LOAD_VALUE(NAME)                       \
-	NAME = [](ref::local<jclass> const& cls) { \
-		DEFINE_NAME(name, #NAME);              \
-		using fld = static_field<name, jint>;  \
-		return fld{}.bind(cls).load();         \
+#define LOAD_VALUE(NAME)                               \
+	NAME = [](ref::binding_local<jclass> const& cls) { \
+		DEFINE_NAME(name, #NAME);                      \
+		static_field<name, jint> fld{};                \
+		return cls[fld].load();                        \
 	}(cls);
 
 	void R_type::string_type::load() {

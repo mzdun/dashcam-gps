@@ -118,12 +118,6 @@ namespace jni {
 		using bound_field =
 		    jni::bound_field<JNIReference, field_access, Storage>;
 
-		template <typename JNIReference, typename Policy>
-		bound_field<JNIReference> bind(
-		    ref::basic_reference<JNIReference, Policy> const& obj) noexcept {
-			return {obj.get(), from(obj)};
-		};
-
 	protected:
 		jfieldID field_id_{nullptr};
 	};
@@ -140,12 +134,6 @@ namespace jni {
 
 		using bound_field =
 		    jni::bound_field<jclass, static_field_access, Storage>;
-
-		template <typename Policy>
-		bound_field bind(
-		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
-			return {cls.get(), this->from(cls)};
-		};
 
 	protected:
 		jfieldID field_id_{nullptr};

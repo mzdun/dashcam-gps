@@ -1,6 +1,5 @@
 #pragma once
-#include <jni/field.hh>
-#include <jni/method.hh>
+#include <jni/binding_ref.hh>
 
 namespace jni {
 	struct type_base {};
@@ -14,18 +13,23 @@ namespace jni {
 		ref_type_base& operator=(ref_type_base&&) noexcept = default;
 
 		template <typename PolicyUsed>
+		ref_type_base(ref::basic_binding_reference<jobject, PolicyUsed> const&
+		                  obj) noexcept
+		    : obj_{obj} {}
+
+		template <typename PolicyUsed>
 		ref_type_base(
 		    ref::basic_reference<jobject, PolicyUsed> const& obj) noexcept
 		    : obj_{obj} {}
 
 		ref_type_base(jobject obj) noexcept : obj_{obj} {}
-		ref::basic_reference<jobject, Policy<jobject>> const& obj() const
-		    noexcept {
+		ref::basic_binding_reference<jobject, Policy<jobject>> const& obj()
+		    const noexcept {
 			return obj_;
 		}
 
 	protected:
-		ref::basic_reference<jobject, Policy<jobject>> obj_{};
+		ref::basic_binding_reference<jobject, Policy<jobject>> obj_{};
 	};
 
 	template <auto& ClassName,

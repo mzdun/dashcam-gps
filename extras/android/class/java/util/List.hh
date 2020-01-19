@@ -15,9 +15,9 @@ namespace java::util {
 		using parent::obj;
 		using parent::parent;
 
-		jboolean add(jobject item) { return addId().bind(obj())(item); }
+		jboolean add(jobject item) { return obj()[addId()](item); }
 
-		void clear() { return clearId().bind(obj())(); }
+		void clear() { return obj()[clearId()](); }
 
 		void load() {
 			auto cls = jni::ref::find_class<NonGenericList>();

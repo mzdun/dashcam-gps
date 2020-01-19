@@ -144,7 +144,7 @@ namespace jni {
 	struct bound_call;
 
 	template <typename JNIReference,
-	          template <typename, typename=void>
+	          template <typename, typename = void>
 	          typename Invocation,
 	          typename Ret,
 	          typename... Args>
@@ -184,12 +184,6 @@ namespace jni {
 		using bound_call =
 		    jni::bound_call<JNIReference, method_invocation, Prototype>;
 
-		template <typename JNIReference, typename Policy>
-		bound_call<JNIReference> bind(
-		    ref::basic_reference<JNIReference, Policy> const& obj) noexcept {
-			return {obj.get(), from(obj)};
-		};
-
 	protected:
 		jmethodID method_id_{nullptr};
 	};
@@ -207,12 +201,6 @@ namespace jni {
 
 		using bound_call =
 		    jni::bound_call<jclass, static_method_invocation, Prototype>;
-
-		template <typename Policy>
-		bound_call bind(
-		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
-			return {cls.get(), from(cls)};
-		};
 
 	protected:
 		jmethodID method_id_{nullptr};
@@ -244,12 +232,6 @@ namespace jni {
 
 		using bound_call =
 		    jni::bound_call<jclass, constructor_invocation, real_ret(Args...)>;
-
-		template <typename Policy>
-		bound_call bind(
-		    ref::basic_reference<jclass, Policy> const& cls) noexcept {
-			return {cls.get(), from(cls)};
-		};
 
 	protected:
 		jmethodID method_id_{nullptr};

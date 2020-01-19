@@ -2,6 +2,8 @@ add_subdirectory(filesystem-polyfill)
 
 include(warnings)
 add_library(jni STATIC
+    jni/binding_ref.cc
+    jni/binding_ref.hh
     jni/env.cc
     jni/env.hh
     jni/field.cc

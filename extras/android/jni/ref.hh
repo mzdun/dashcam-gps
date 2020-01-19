@@ -302,13 +302,4 @@ namespace jni::ref {
 		return get_static_field_id(cls, Name::get_name().c_str(),
 		                           jni::type<Storage>::name().c_str());
 	}
-
-	global<jclass> find_class(const char* name) noexcept;
-
-	template <typename CxxClass>
-	inline global<jclass> find_class() {
-		using PACKAGE = typename CxxClass::PACKAGE;
-		return find_class(
-		    (PACKAGE::package_name() + '/' + CxxClass::class_name()).c_str());
-	}
 }  // namespace jni::ref

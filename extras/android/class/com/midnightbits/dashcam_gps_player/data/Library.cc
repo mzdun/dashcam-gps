@@ -96,14 +96,15 @@ namespace com::midnightbits::dashcam_gps_player::data {
 	                                            int title,
 	                                            int icon,
 	                                            int count) {
-		static jni::ref::global<jclass> cls{jni::ref::find_class<Filter>()};
+		static jni::ref::binding_global<jclass> cls{
+		    jni::ref::find_class<Filter>()};
 		static jni::constructor<void(jint, jint, jint, jint, jint)> init{};
-		return {init.bind(cls)(id, page, title, icon, count)};
+		return {cls[init](id, page, title, icon, count)};
 	}
 
 	java::util::List<Library::Filter> Library::Filters() const noexcept {
 		JNI_FIELD_REF(var, "Filters", java::util::List<Filter>);
-		return var.bind(obj()).load();
+		return obj()[var].load();
 	}
 
 	// JNI API
