@@ -1,6 +1,3 @@
-if (ANDROID OR JNI_FOUND)
-add_subdirectory(android-player)
-endif()
 if (NOT ANDROID)
 add_subdirectory(html+svg)
 add_subdirectory(listing)
