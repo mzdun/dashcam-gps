@@ -35,12 +35,9 @@ else()
 endif()
 
 set(CLASS_SRC
-    class/com/midnightbits/dashcam_gps_player/data/Library.cc
-    class/com/midnightbits/dashcam_gps_player/data/Library.hh
-    class/com/midnightbits/dashcam_gps_player/data/PACKAGE.hh
-    class/com/midnightbits/dashcam_gps_player/PACKAGE.hh
-    class/com/midnightbits/dashcam_gps_player/R.cc
-    class/com/midnightbits/dashcam_gps_player/R.hh
+    class/com/midnightbits/mgps/Library.cc
+    class/com/midnightbits/mgps/Library.hh
+    class/com/midnightbits/mgps/PACKAGE.hh
     class/java/time/Duration.hh
     class/java/time/PACKAGE.hh
     class/java/util/ArrayList.hh
