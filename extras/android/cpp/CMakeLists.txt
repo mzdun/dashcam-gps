@@ -21,7 +21,9 @@ add_library(jni STATIC
 )
 
 target_include_directories(jni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(jni PROPERTIES FOLDER ${FOLDER_APPS_EXTRAS})
+set_target_properties(jni PROPERTIES
+    FOLDER ${FOLDER_APPS_EXTRAS}
+    POSITION_INDEPENDENT_CODE ON)
 
 if (ANDROID)
     find_library(ANDROID_LOG log REQUIRED)
@@ -46,7 +48,9 @@ set(CLASS_SRC
     class/java/util/PACKAGE.hh
 )
 add_library(mgps-droid STATIC ${CLASS_SRC})
-set_target_properties(mgps-droid PROPERTIES FOLDER ${FOLDER_APPS_EXTRAS})
+set_target_properties(mgps-droid PROPERTIES
+    FOLDER ${FOLDER_APPS_EXTRAS}
+    POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(mgps-droid PUBLIC jni mgps mgps-70mai droid++fs)
 target_include_directories(mgps-droid PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/class)
 

@@ -57,8 +57,8 @@ namespace jni {
 				LOG(FATAL) << "Failed to get JNIEnv for current thread; error:"
 				           << result;
 			}
-            actual_ = env;
+			actual_ = env;
 			owned_env_ = owned_env;
 		}
 	}
-};  // namespace jni
+}  // namespace jni

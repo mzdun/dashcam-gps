@@ -1,6 +1,8 @@
 #pragma once
 #include <jni/binding_ref.hh>
 
+#define DEFINE_CLASS_NAME(NAME) DEFINE_NAME(NAME##_name, #NAME)
+
 namespace jni {
 	struct type_base {};
 
@@ -32,7 +34,7 @@ namespace jni {
 		ref::basic_binding_reference<jobject, Policy<jobject>> obj_{};
 	};
 
-	template <auto& ClassName,
+	template <typename ClassName,
 	          typename Package,
 	          template <typename> typename Policy = ref::policy::local>
 	struct named_type_base : ref_type_base<Policy> {
@@ -40,7 +42,7 @@ namespace jni {
 		using parent_t::parent_t;
 		using PACKAGE = Package;
 
-		static constexpr auto class_name() noexcept { return ClassName; }
+		static constexpr auto class_name() noexcept { return ClassName::get_name(); }
 	};
 
 	template <typename CxxClass>

@@ -45,4 +45,6 @@ if (NOT MSVC AND NOT ANDROID)
 endif()
 
 dir_filters(MGPS_SOURCES)
-set_target_properties(mgps PROPERTIES FOLDER ${FOLDER_CORE})
+set_target_properties(mgps PROPERTIES
+    FOLDER ${FOLDER_CORE}
+    POSITION_INDEPENDENT_CODE ON)

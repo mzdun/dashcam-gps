@@ -6,9 +6,9 @@
 #include <vector>
 
 namespace com::midnightbits::mgps {
-	static constexpr auto Library_name = jni::fixed_string{"Library"};
-	static constexpr auto Clip_name = jni::fixed_string{"Clip"};
-	static constexpr auto Page_name = jni::fixed_string{"Page"};
+	DEFINE_CLASS_NAME(Library);
+	DEFINE_CLASS_NAME(Clip);
+	DEFINE_CLASS_NAME(Page);
 
 	struct Clip
 	    : jni::named_type_base<Clip_name, PACKAGE, jni::ref::policy::global> {
@@ -28,7 +28,7 @@ namespace com::midnightbits::mgps {
 		static std::vector<Page> values();
 	};
 
-	template <typename Final, auto& Name, typename... Vals>
+	template <typename Final, typename Name, typename... Vals>
 	struct data_class : jni::named_type_base<Name, PACKAGE> {
 		using parent = jni::named_type_base<Name, PACKAGE>;
 		using parent::parent;
@@ -52,11 +52,11 @@ namespace com::midnightbits::mgps {
 	};
 
 #define DATA_CLASS(NAME, ...)                                      \
-	static constexpr auto NAME##_name = jni::fixed_string{#NAME};  \
+	DEFINE_CLASS_NAME(NAME);                                       \
 	struct NAME : data_class<NAME, NAME##_name, __VA_ARGS__> {     \
 		using parent = data_class<NAME, NAME##_name, __VA_ARGS__>; \
 		using parent::parent;                                      \
-	};
+	}
 
 	DATA_CLASS(Duration, jlong);
 	DATA_CLASS(MediaFile,

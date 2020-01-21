@@ -3,9 +3,9 @@
 #include <java/util/List.hh>
 
 namespace java::util {
-	inline constexpr auto ArrayList_name = jni::fixed_string{"ArrayList"};
+	DEFINE_CLASS_NAME(ArrayList);
 
-	template <auto& ClassName = ArrayList_name,
+	template <typename ClassName = ArrayList_name,
 	          typename Package = PACKAGE,
 	          template <typename> typename Policy = jni::ref::policy::local>
 	struct NonGenericArrayList

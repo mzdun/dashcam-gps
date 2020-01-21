@@ -223,10 +223,10 @@ namespace mgps::svg {
 			dist += line.distance();
 		}
 
-		auto const start_hour = trip.start - floor<date::days>(trip.start);
+		auto const start_hour = trip.start - date::floor<date::days>(trip.start);
 
 		out << R"(
-<h2>)" << floor<ch::minutes>(start_hour)
+<h2>)" << date::floor<ch::minutes>(start_hour)
 		    << R"(</h2>
 
 )";
@@ -238,7 +238,7 @@ namespace mgps::svg {
 
 <table class="info">
 <tr><th>Duration:</th><td>)"
-		    << floor<ch::seconds>(trip.playlist.duration)
+		    << date::floor<ch::seconds>(trip.playlist.duration)
 		    << "</td></tr>\n<tr><th>Playlist:</th><td>"
 		    << pl{trip.playlist.media.size(), "clip"}
 		    << "</td></tr>\n<tr><th>Plot:</tthd><td>"
@@ -262,7 +262,7 @@ namespace mgps::svg {
 
 		bool has_millis_in_offset = false;
 		for (auto& file : trip.playlist.media) {
-			if (floor<ch::seconds>(file.offset) != file.offset) {
+			if (date::floor<ch::seconds>(file.offset) != file.offset) {
 				has_millis_in_offset = true;
 				break;
 			}
@@ -277,7 +277,7 @@ namespace mgps::svg {
 			if (has_millis_in_offset)
 				out << clip.offset.time_since_epoch();
 			else
-				out << floor<ch::seconds>(clip.offset).time_since_epoch();
+				out << date::floor<ch::seconds>(clip.offset).time_since_epoch();
 			out << "</td><td class=\"num\">" << clip.duration << "</td><td>";
 
 			auto file = trip.footage(clip);

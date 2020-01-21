@@ -4,9 +4,9 @@
 #include <jni/type_base.hh>
 
 namespace java::util {
-	inline constexpr auto List_name = jni::fixed_string{"List"};
+	DEFINE_CLASS_NAME(List);
 
-	template <auto& ClassName = List_name,
+	template <typename ClassName = List_name,
 	          typename Package = PACKAGE,
 	          template <typename> typename Policy = jni::ref::policy::local>
 	struct NonGenericList

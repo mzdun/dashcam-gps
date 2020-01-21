@@ -67,7 +67,8 @@ namespace mgps {
 			dist += line.distance();
 		}
 
-		auto const start_hour = trip.start - floor<date::days>(trip.start);
+		auto const start_hour =
+		    trip.start - date::floor<date::days>(trip.start);
 
 #define TDr "<td style='text-align:right'>"
 #define COLLAPSIBLE_START(lvl)          \
@@ -87,11 +88,11 @@ namespace mgps {
 			out << "<tr><th>" << name << "</th>" TDr << value << "</td></tr>\n";
 		};
 
-		out << "\n" COLLAPSIBLE_START(3) << floor<ch::minutes>(start_hour)
+		out << "\n" COLLAPSIBLE_START(3) << date::floor<ch::minutes>(start_hour)
 		    << SWITCH(3)
 		    << "\n"
 		       "<table>";
-		print_row("Duration", floor<ch::seconds>(trip.playlist.duration));
+		print_row("Duration", date::floor<ch::seconds>(trip.playlist.duration));
 		print_row("Playlist", pl{trip.playlist.media.size(), "clip"});
 		out << "<tr><th>Plot</th><td style='text-align:right'>"
 		    << pl{trip.trace.lines.size(), "ln"} << "<br/>" << pl{gpses, "pt"}
@@ -173,7 +174,7 @@ namespace mgps {
 
 		bool has_millis_in_offset = false;
 		for (auto& file : trip.playlist.media) {
-			if (floor<ch::seconds>(file.offset) != file.offset) {
+			if (date::floor<ch::seconds>(file.offset) != file.offset) {
 				has_millis_in_offset = true;
 				break;
 			}
@@ -184,7 +185,7 @@ namespace mgps {
 			if (has_millis_in_offset)
 				out << file.offset.time_since_epoch();
 			else
-				out << floor<ch::seconds>(file.offset).time_since_epoch();
+				out << date::floor<ch::seconds>(file.offset).time_since_epoch();
 			out << "</td>" TDr << file.duration << "</td>" TDr << file.reference
 			    << "</td>" TDr;
 			auto ptr = lib.footage(file);
@@ -567,7 +568,7 @@ img {
 			date::local_days prev_date{};
 			bool had_one = false;
 			for (auto const& trip : trips) {
-				auto const date = floor<date::days>(trip.start);
+				auto const date = date::floor<date::days>(trip.start);
 
 				if (date != prev_date) {
 					prev_date = date;

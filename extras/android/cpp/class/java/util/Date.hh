@@ -5,7 +5,7 @@
 #include <chrono>
 
 namespace java::util {
-	inline constexpr auto Date_name = jni::fixed_string{"Date"};
+	DEFINE_CLASS_NAME(Date);
 
 	struct Date : public jni::named_type_base<Date_name, PACKAGE> {
 		using parent = jni::named_type_base<Date_name, PACKAGE>;
@@ -16,7 +16,7 @@ namespace java::util {
 			static jni::ref::binding_global<jclass> cls{
 			    jni::ref::find_class<Date>()};
 			static jni::constructor<void(jlong)> init{};
-			auto const jlong_ms = jlong(ms.count());
+			auto const jlong_ms = ms.count();
 			return {cls[init](jlong_ms)};
 		}
 	};
