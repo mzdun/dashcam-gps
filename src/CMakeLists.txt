@@ -40,11 +40,7 @@ set(MGPS_SOURCES
 add_library(mgps STATIC ${MGPS_SOURCES})
 
 target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
-target_link_libraries(mgps date::date)
-
-if (NOT MSVC AND NOT ANDROID)
-	target_link_libraries(mgps fs-polyfill)
-endif()
+target_link_libraries(mgps date::date fs-polyfill)
 
 dir_filters(MGPS_SOURCES)
 set_target_properties(mgps PROPERTIES
