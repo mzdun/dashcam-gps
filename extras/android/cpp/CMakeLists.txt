@@ -28,7 +28,6 @@ set_target_properties(jni PROPERTIES
 if (ANDROID)
     find_library(ANDROID_LOG log REQUIRED)
     mark_as_advanced(ANDROID_LOG)
-    message(STATUS "log: ${ANDROID_LOG}")
 
     target_link_libraries(jni PUBLIC ${ANDROID_LOG})
 else()

@@ -25,7 +25,9 @@ set(FOLDER_CORE "Core")
 set(FOLDER_EXTRAS "Core/Extras")
 set(FOLDER_EXTERNAL "External")
 
-find_package(JNI)
+if (NOT ANDROID)
+    find_package(JNI)
+endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
