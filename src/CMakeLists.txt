@@ -1,3 +1,5 @@
+add_subdirectory(fs-polyfill)
+
 include(warnings)
 include(dir_filters)
 
@@ -41,7 +43,7 @@ target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CU
 target_link_libraries(mgps date::date)
 
 if (NOT MSVC AND NOT ANDROID)
-	target_link_libraries(mgps stdc++fs)
+	target_link_libraries(mgps fs-polyfill)
 endif()
 
 dir_filters(MGPS_SOURCES)

@@ -20,14 +20,14 @@ if (NOT HAS_STD_FILESYSTEM)
 endif()
 
 if (HAS_STD_FILESYSTEM OR HAS_STD_FILESYSTEM_STDCXXFS OR HAS_STD_FILESYSTEM_CXXFS)
-    add_library(droid++fs INTERFACE IMPORTED GLOBAL)
+    add_library(fs-polyfill INTERFACE IMPORTED GLOBAL)
     
-    if (HAS_STD_FILESYSTEM_CXXFS)
+    if (HAS_LIBCXX AND HAS_STD_FILESYSTEM_CXXFS)
         message(STATUS "<filesystem> implemented with libc++fs")
-        target_link_libraries(droid++fs INTERFACE c++fs)
-    elseif (HAS_STD_FILESYSTEM_STDCXXFS)
+        target_link_libraries(fs-polyfill INTERFACE c++fs)
+    elseif (NOT HAS_LIBCXX AND HAS_STD_FILESYSTEM_STDCXXFS)
         message(STATUS "<filesystem> implemented with libstdc++fs")
-        target_link_libraries(droid++fs INTERFACE stdc++fs)
+        target_link_libraries(fs-polyfill INTERFACE stdc++fs)
     elseif (MSVC)
         message(STATUS "<filesystem> implemented with msvcrt")
     elseif (HAS_LIBCXX)
@@ -35,15 +35,17 @@ if (HAS_STD_FILESYSTEM OR HAS_STD_FILESYSTEM_STDCXXFS OR HAS_STD_FILESYSTEM_CXXF
     else()
         message(STATUS "<filesystem> implemented with libstdc++")
     endif()
-else()
-    message(STATUS "<filesystem> implemented with libdroid++fs (libc++fs)")
-    add_library(droid++fs STATIC
+elseif (ANDROID)
+    message(STATUS "<filesystem> implemented with libfs-polyfill (libc++fs)")
+    add_library(fs-polyfill STATIC
             operations.cpp
             directory_iterator.cpp
             filesystem_common.h
             int128_builtins.cpp)
-    set_target_properties(droid++fs PROPERTIES
+    set_target_properties(fs-polyfill PROPERTIES
         FOLDER ${FOLDER_APPS_EXTRAS}
         POSITION_INDEPENDENT_CODE ON)
+else()
+    message(FATAL_ERROR "<filesystem> implementation is missing")
 endif()
 
