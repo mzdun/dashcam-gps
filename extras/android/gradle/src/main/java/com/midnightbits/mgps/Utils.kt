@@ -35,7 +35,7 @@ class Utils {
                     if (file == null) //solved NPE on some Lollipop devices
                         continue
                     val path = file.path.split("/Android").toTypedArray()[0]
-                    var addPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    val addPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         Environment.isExternalStorageRemovable(file) ||
                         Environment.isExternalStorageEmulated(file)
                     } else {
