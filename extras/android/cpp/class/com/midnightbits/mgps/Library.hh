@@ -80,7 +80,7 @@ namespace com::midnightbits::mgps {
 	           java::util::List<MediaClip> const&,
 	           GpsTrace const&);
 
-	DATA_CLASS(Filter, int, Page const&, java::util::List<Trip> const&);
+	DATA_CLASS(Filter, jint, Page const&, java::util::List<Trip> const&);
 
 	struct Library : jni::named_type_base<Library_name, PACKAGE> {
 	private:

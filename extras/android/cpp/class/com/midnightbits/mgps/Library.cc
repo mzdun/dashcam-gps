@@ -15,12 +15,12 @@ namespace com::midnightbits::mgps {
 
 	template <typename Item>
 	struct list_add_iterator {
-		java::util::List<Item>& target;
+		java::util::List<Item>* target;
 		list_add_iterator& operator++() noexcept { return *this; }
 		list_add_iterator& operator++(int) noexcept { return *this; }
 		list_add_iterator& operator*() noexcept { return *this; }
 		list_add_iterator& operator=(Item const& item) {
-			if (item.obj() != nullptr) target.add(item);
+			if (item.obj() != nullptr) target->add(item);
 			return *this;
 		}
 	};
@@ -34,7 +34,7 @@ namespace com::midnightbits::mgps {
 
 	template <typename Item>
 	list_add_iterator<Item> list_adder(java::util::List<Item>& target) {
-		return {target};
+		return {&target};
 	}
 
 	struct ViewDescr {
