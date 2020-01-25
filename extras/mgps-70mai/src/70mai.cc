@@ -164,6 +164,9 @@ namespace mgps::isom::mai {
 	}      // namespace
 
 	clip_filename_info get_filename_info(std::string_view filename) {
+		auto const pos = filename.find_last_of(fs::path::preferred_separator);
+		if (pos != std::string_view::npos)
+			filename = filename.substr(pos + 1);
 		auto parts = ctre::match<filenames>(filename);
 		if (!parts) return {};
 

@@ -291,7 +291,7 @@ namespace mgps::svg {
 						printed_proximate = true;
 					}
 				}
-				if (!printed_proximate) out << file->filename.string();
+				if (!printed_proximate) out << file->filename;
 				out << R"(">)" << file->type << "</a>";
 			} else {
 				out << "&#x2049;&#xFE0F;";

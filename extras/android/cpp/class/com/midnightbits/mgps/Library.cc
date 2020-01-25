@@ -146,7 +146,7 @@ namespace com::midnightbits::mgps {
 		}
 		auto const& clip = Clips[type];
 		jni::ref::local<jstring> path{jni::Env::get().handle()->NewStringUTF(
-		    movie.filename.string().c_str())};
+		    movie.filename.c_str())};
 
 		return {path.get(), toDate(movie.date_time), toDuration(movie.duration),
 		        clip};

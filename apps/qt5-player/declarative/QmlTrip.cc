@@ -108,7 +108,7 @@ namespace mgps::declarative {
 			for (auto const& video : trip_->playlist.media) {
 				auto file = trip_->footage(video);
 				auto url = QUrl::fromLocalFile(
-				    QString::fromStdString(file->filename.string()));
+				    QString::fromStdString(file->filename));
 
 				offsets_.push_back(offset);
 				offset += video.duration;

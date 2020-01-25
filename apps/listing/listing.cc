@@ -195,7 +195,7 @@ namespace mgps {
 			else
 				out << ptr->points.size()
 				    << "</td><td style='text-align:center'>" << ptr->type
-				    << "</td><td>" << ptr->filename.string() << "</td></tr>\n";
+				    << "</td><td>" << ptr->filename << "</td></tr>\n";
 		}
 
 		out << "</tbody>"

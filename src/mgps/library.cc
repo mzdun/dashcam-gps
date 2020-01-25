@@ -6,10 +6,11 @@ namespace mgps {
 
 	bool library::add_file(fs::path const& filename) {
 		footage_.emplace_back();
+		auto const filename_str = filename.string();
 		for (auto& plugin : plugins_) {
-			if (!plugin->probe(filename)) continue;
+			if (!plugin->probe(filename_str.c_str())) continue;
 			auto& back = footage_.back();
-			if (!plugin->load(filename, &back)) {
+			if (!plugin->load(filename_str.c_str(), &back)) {
 				back = media_file{};
 				continue;
 			}

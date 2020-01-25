@@ -9,7 +9,7 @@ namespace mgps {
 }
 namespace mgps::mai {
 	struct plugin : plugins::loader_interface {
-		bool probe(fs::path const& filename) const override;
-		bool load(fs::path const& filename, media_file* out) const override;
+		bool probe(char const* filename) const override;
+		bool load(char const* filename, media_file* out) const override;
 	};
 }  // namespace mgps::mai
