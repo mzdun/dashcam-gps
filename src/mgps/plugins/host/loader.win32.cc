@@ -13,7 +13,7 @@
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
-namespace mgps::host {
+namespace mgps::plugins::host {
 	namespace {
 		template <typename PrivateClass>
 		HMODULE to_platform(PrivateClass* ptr) {
@@ -128,4 +128,4 @@ namespace mgps::host {
 		return GetProcAddress(to_platform(lib_.get()), function);
 	}
 
-}  // namespace mgps::host
+}  // namespace mgps::plugins::host

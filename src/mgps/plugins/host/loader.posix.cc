@@ -3,7 +3,7 @@
 #include <dlfcn.h>
 #include <system_error>
 
-namespace mgps::host {
+namespace mgps::plugins::host {
 	namespace {
 		template <typename PrivateClass>
 		void* to_platform(PrivateClass* ptr) {
@@ -71,4 +71,4 @@ namespace mgps::host {
 		return dlsym(to_platform(lib_.get()), function);
 	}
 
-}  // namespace mgps::host
+}  // namespace mgps::plugins::host

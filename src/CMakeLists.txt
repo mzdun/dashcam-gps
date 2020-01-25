@@ -16,6 +16,10 @@ set(MGPS_SOURCES
     mgps/library.hh
     mgps/media_file.cc
     mgps/media_file.hh
+    mgps/plugins/host/dynamic_plugin.cc
+    mgps/plugins/host/dynamic_plugin.hh
+    mgps/plugins/host/host.cc
+    mgps/plugins/host/host.hh
     mgps/plugins/host/loader.hh
     mgps/plugins/plugin_interface.cc
     mgps/plugins/plugin_interface.hh

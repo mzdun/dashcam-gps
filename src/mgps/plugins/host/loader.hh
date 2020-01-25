@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace mgps::host {
+namespace mgps::plugins::host {
 	class loader {
 	public:
 		loader() = default;
