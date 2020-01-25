@@ -16,6 +16,7 @@ set(MGPS_SOURCES
     mgps/library.hh
     mgps/media_file.cc
     mgps/media_file.hh
+    mgps/plugins/host/loader.hh
     mgps/plugins/plugin_interface.cc
     mgps/plugins/plugin_interface.hh
     mgps/track/boundary.cc
@@ -37,6 +38,17 @@ set(MGPS_SOURCES
     mgps/video/playlist.cc
     mgps/video/playlist.hh
 )
+
+if (UNIX)
+    list(APPEND MGPS_SOURCES
+        mgps/plugins/host/loader.posix.cc
+    )
+else()
+    list(APPEND MGPS_SOURCES
+        mgps/plugins/host/loader.win32.cc
+    )
+endif()
+
 add_library(mgps STATIC ${MGPS_SOURCES})
 
 target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
