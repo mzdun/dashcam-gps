@@ -8,7 +8,7 @@
 
 namespace fs = std::filesystem;
 
-namespace mgps::mai {
+namespace mgps::mai::api {
 	namespace {
 		struct file_reader_data {
 			std::chrono::milliseconds duration;
@@ -25,7 +25,7 @@ namespace mgps::mai {
 		}
 	}  // namespace
 
-	bool plugin::probe(char const* filename) const {
+	bool probe(char const* filename) {
 		auto info = isom::mai::get_filename_info(filename);
 		if (info.type == clip::unrecognized) return false;
 
@@ -35,7 +35,7 @@ namespace mgps::mai {
 		return true;
 	}
 
-	bool plugin::load(char const* filename, media_file* out) const {
+	bool load(char const* filename, media_file* out) {
 		if (!out) return false;
 
 		using namespace isom;
@@ -71,5 +71,15 @@ namespace mgps::mai {
 			               return {{in.lat, in.lon}, in.kmph, in.pos};
 		               });
 		return true;
+	}
+}  // namespace mgps::mai::api
+
+namespace mgps::mai {
+	bool plugin::probe(char const* filename) const {
+		return api::probe(filename);
+	}
+
+	bool plugin::load(char const* filename, media_file* out) const {
+		return api::load(filename, out);
 	}
 }  // namespace mgps::mai

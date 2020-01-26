@@ -10,9 +10,28 @@ set(PLUGIN_SOURCES
 add_library(mgps-70mai STATIC ${PLUGIN_SOURCES})
 
 target_include_directories(mgps-70mai PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(mgps-70mai mgps ctre::ctre)
+target_link_libraries(mgps-70mai PUBLIC mgps PRIVATE ctre::ctre)
 set_target_properties(mgps-70mai PROPERTIES
     FOLDER ${FOLDER_EXTRAS}
     POSITION_INDEPENDENT_CODE ON)
 
 dir_filters(PLUGIN_SOURCES)
+
+set(DYNAMIC_PLUGIN_SOURCES
+    src/exports.cc
+)
+add_library(mgps-plugin-70mai SHARED ${DYNAMIC_PLUGIN_SOURCES})
+
+target_include_directories(mgps-plugin-70mai PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(mgps-plugin-70mai PRIVATE mgps-70mai)
+set_target_properties(mgps-plugin-70mai PROPERTIES
+    FOLDER ${FOLDER_EXTRAS}
+    POSITION_INDEPENDENT_CODE ON
+    PREFIX "")
+
+dir_filters(DYNAMIC_PLUGIN_SOURCES)
+
+if (NOT ANDROID)
+    include(application)
+    plugindir(mgps-plugin-70mai)
+endif()

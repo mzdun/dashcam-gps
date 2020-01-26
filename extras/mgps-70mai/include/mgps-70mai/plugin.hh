@@ -7,6 +7,12 @@
 namespace mgps {
 	struct trip;
 }
+
+namespace mgps::mai::api {
+	bool probe(char const* filename);
+	bool load(char const* filename, media_file* out);
+}  // namespace mgps::mai::api
+
 namespace mgps::mai {
 	struct plugin : plugins::loader_interface {
 		bool probe(char const* filename) const override;

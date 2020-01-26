@@ -1,7 +1,34 @@
 #include <mgps/library.hh>
+#include <mgps/plugins/host/host.hh>
 #include <mgps/trip.hh>
 
 namespace mgps {
+	namespace {
+		class host : public plugins::host::host {
+		public:
+			explicit host(library& ref) : ref_{&ref} {}
+
+			bool append(plugins::host::library_info info) override {
+				plugins::ptr dyn{};
+				try {
+					dyn = std::make_unique<plugins::host::dynamic_plugin>(
+					    std::move(info));
+				} catch (std::bad_alloc&) {
+					return false;
+				}
+				ref_->add_plugin(std::move(dyn));
+				return true;
+			}
+
+		private:
+			library* ref_{nullptr};
+		};
+	}  // namespace
+
+	void library::lookup_plugins(std::error_code& ec) {
+		host{*this}.lookup_plugins(ec);
+	}
+
 	void library::before_update() { footage_.clear(); }
 
 	bool library::add_file(fs::path const& filename) {

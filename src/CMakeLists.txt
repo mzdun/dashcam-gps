@@ -16,6 +16,7 @@ set(MGPS_SOURCES
     mgps/library.hh
     mgps/media_file.cc
     mgps/media_file.hh
+    mgps/plugins/client.hh
     mgps/plugins/host/dynamic_plugin.cc
     mgps/plugins/host/dynamic_plugin.hh
     mgps/plugins/host/host.cc

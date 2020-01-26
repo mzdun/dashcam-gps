@@ -48,7 +48,7 @@ add_library(mgps-droid STATIC ${CLASS_SRC})
 set_target_properties(mgps-droid PROPERTIES
     FOLDER ${FOLDER_APPS_EXTRAS}
     POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(mgps-droid PUBLIC jni mgps mgps-70mai)
+target_link_libraries(mgps-droid PUBLIC jni PRIVATE mgps)
 target_include_directories(mgps-droid PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/class)
 
 include(dir_filters)

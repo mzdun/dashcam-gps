@@ -13,6 +13,7 @@ namespace mgps {
 		static constexpr ch::milliseconds special_gap = ch::minutes{1};
 
 		library() = default;
+		void lookup_plugins(std::error_code& ec);
 		void add_plugin(plugins::ptr plugin) {
 			plugins_.emplace_back(std::move(plugin));
 		}
