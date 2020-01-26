@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <mgps-70mai/plugin.hh>
 #include <mgps/library.hh>
 #include <mgps/trip.hh>
 
@@ -17,7 +16,15 @@ int main(int argc, char** argv) {
 	using namespace std::literals;
 
 	library lib{};
-	lib.make_plugin<mai::plugin>();
+	{
+		std::error_code ec;
+		lib.lookup_plugins(ec);
+		if (ec) {
+			std::cerr << "Error while loading plugins: "
+			          << ec.message().c_str() << '\n';
+			return 1;
+		}
+	}
 	lib.before_update();
 	lib.add_directory(argv[1]);
 	lib.after_update();

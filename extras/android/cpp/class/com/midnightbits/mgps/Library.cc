@@ -4,7 +4,6 @@
 #include <jni/env.hh>
 #include <log.hh>
 #include <memory>
-#include <mgps-70mai/plugin.hh>
 #include <mgps/library.hh>
 #include <mgps/trip.hh>
 
@@ -89,7 +88,13 @@ namespace com::midnightbits::mgps {
 		                    {page::parking, {}}};
 	};
 
-	Library::DataHolder::DataHolder() { lib_.make_plugin<mai::plugin>(); }
+	Library::DataHolder::DataHolder() {
+		std::error_code ec;
+		lib_.lookup_plugins(ec);
+		if (ec) {
+			LOG(ERROR) << "Error while loading plugins: " << ec.message();
+		}
+	}
 
 	void Library::DataHolder::before_updates() {
 		for (auto& view : views_)

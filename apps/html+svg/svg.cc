@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
-#include <mgps-70mai/plugin.hh>
+#include <mgps/library.hh>
 #include <mgps/cstdio.hh>
 #include <mgps/trip.hh>
 #include <optional>

@@ -9,7 +9,6 @@
 
 #include "declarative/QmlTrip.hh"
 #include "declarative/declarative.hh"
-#include "mgps-70mai/plugin.hh"
 #include "mgps/library.hh"
 
 using namespace mgps;
@@ -33,9 +32,16 @@ void load_library(std::string const& dirname,
                   trip& current_trip,
                   library& lib) {
 	using namespace std::literals;
-	constexpr auto gap = 10min;
 
-	lib.make_plugin<mai::plugin>();
+	{
+		std::error_code ec;
+		lib.lookup_plugins(ec);
+		if (ec) {
+			qDebug() << "Error while loading plugins: " << ec.message().c_str();
+			return;
+		}
+	}
+
 	lib.before_update();
 	lib.add_directory(dirname);
 	lib.after_update();

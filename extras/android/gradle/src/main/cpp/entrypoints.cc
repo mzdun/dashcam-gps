@@ -7,10 +7,9 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* /* reserved */) {
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_midnightbits_mgps_Library_loadDirectories_1native(
-    JNIEnv* env,
-    jobject obj,
-    jobjectArray dirs) {
+Java_com_midnightbits_mgps_Library_loadDirectories_1native(JNIEnv* env,
+                                                           jobject obj,
+                                                           jobjectArray dirs) {
 	jni::EnvCall call{env};
 
 	auto lib = com::midnightbits::mgps::Library{obj};
