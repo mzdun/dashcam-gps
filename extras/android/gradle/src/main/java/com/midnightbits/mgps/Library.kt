@@ -1,6 +1,7 @@
 package com.midnightbits.mgps
 
-import java.lang.StringBuilder
+import android.os.AsyncTask
+import android.os.SystemClock
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -93,10 +94,27 @@ class Library {
     }
 
     fun loadDirectories(dirs: Array<String>) {
-        loadDirectories_native(dirs);
-        callback.onLoadDone();
+        AsyncLoad(this).execute(*dirs)
     }
     private external fun loadDirectories_native(dirs: Array<String>)
+    private fun loaded() {
+        callback.onLoadDone();
+    }
+
+    class AsyncLoad(val parent: Library) : AsyncTask<String, Void, Void?>() {
+        override fun doInBackground(vararg dirs: String): Void? {
+            parent.loadDirectories_native(arrayOf(*dirs))
+            try {
+                SystemClock.sleep(200)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            return null;
+        }
+        override fun onPostExecute(ign: Void?) {
+            parent.loaded()
+        }
+    }
 
     companion object {
         val self = Library()
