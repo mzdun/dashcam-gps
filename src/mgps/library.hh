@@ -7,6 +7,11 @@ namespace mgps {
 	enum class page : int { everything, emergency, parking };
 
 	struct trip;
+	struct logger {
+		virtual ~logger();
+		virtual void log(std::string const& msg) = 0;
+	};
+
 	class library {
 	public:
 		static constexpr ch::milliseconds default_gap = ch::minutes{10};
@@ -24,8 +29,8 @@ namespace mgps {
 		}
 
 		void before_update();
-		bool add_file(fs::path const&);
-		void add_directory(fs::path const&);
+		bool add_file(fs::path const&, logger* = nullptr);
+		void add_directory(fs::path const&, logger* = nullptr);
 		void after_update();
 		std::vector<trip> build(page kind, ch::milliseconds max_gap) const;
 		std::vector<media_file> const& footage() const noexcept {
@@ -34,6 +39,9 @@ namespace mgps {
 		media_file const* footage(video::media_clip const& ref) const noexcept;
 
 	private:
+		void log(std::string const& msg, logger* out) {
+			if (out) out->log(msg);
+		}
 		std::vector<plugins::ptr> plugins_{};
 		std::vector<media_file> footage_{};
 	};

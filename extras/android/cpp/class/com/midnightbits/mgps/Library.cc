@@ -102,8 +102,12 @@ namespace com::midnightbits::mgps {
 		lib_.before_update();
 	}
 
+	class droid_logger : public mgps::logger {
+		void log(std::string const& msg) { LOG(DEBUG) << msg; }
+	};
 	void Library::DataHolder::load_library(fs::path const& dir) {
-		lib_.add_directory(dir);
+		droid_logger logger{};
+		lib_.add_directory(dir, &logger);
 	}
 
 	void Library::DataHolder::after_updates() {
@@ -150,8 +154,8 @@ namespace com::midnightbits::mgps {
 			}
 		}
 		auto const& clip = Clips[type];
-		jni::ref::local<jstring> path{jni::Env::get().handle()->NewStringUTF(
-		    movie.filename.c_str())};
+		jni::ref::local<jstring> path{
+		    jni::Env::get().handle()->NewStringUTF(movie.filename.c_str())};
 
 		return {path.get(), toDate(movie.date_time), toDuration(movie.duration),
 		        clip};

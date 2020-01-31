@@ -25,13 +25,15 @@ namespace mgps {
 		};
 	}  // namespace
 
+	logger::~logger() {}
+
 	void library::lookup_plugins(std::error_code& ec) {
 		host{*this}.lookup_plugins(ec);
 	}
 
 	void library::before_update() { footage_.clear(); }
 
-	bool library::add_file(fs::path const& filename) {
+	bool library::add_file(fs::path const& filename, logger* out) {
 		footage_.emplace_back();
 		auto const filename_str = filename.string();
 		for (auto& plugin : plugins_) {
@@ -48,15 +50,23 @@ namespace mgps {
 		return false;
 	}
 
-	void library::add_directory(fs::path const& dirname) {
+	void library::add_directory(fs::path const& dirname, logger* out) {
 		std::error_code ec{};
 
 		auto items = fs::directory_iterator{dirname, ec};
-		if (ec) return;
+		if (ec) {
+			log(dirname.string() + ": " + ec.message(), out);
+			return;
+		}
 
 		for (auto const& entry : items) {
-			if (!entry.is_regular_file(ec) || ec) continue;
-			add_file(entry.path());
+			if (!entry.is_regular_file(ec) || ec) {
+				if (ec) {
+					log(entry.path().string() + ": " + ec.message(), out);
+				}
+				continue;
+			}
+			add_file(entry.path(), out);
 		}
 	}
 
