@@ -27,6 +27,7 @@ target_link_libraries(mgps-plugin-70mai PRIVATE mgps-70mai)
 set_target_properties(mgps-plugin-70mai PROPERTIES
     FOLDER ${FOLDER_EXTRAS}
     POSITION_INDEPENDENT_CODE ON
+	VERSION ${PROJECT_VERSION}
     PREFIX "")
 
 dir_filters(DYNAMIC_PLUGIN_SOURCES)
