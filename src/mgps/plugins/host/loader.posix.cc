@@ -1,6 +1,7 @@
 #include "mgps/plugins/host/loader.hh"
 
 #include <dlfcn.h>
+#include <cstring>
 #include <system_error>
 
 namespace mgps::plugins::host {
@@ -13,7 +14,7 @@ namespace mgps::plugins::host {
 		template <typename To, typename Prototype>
 		void* cast_fun(Prototype* fun) {
 			return *reinterpret_cast<void**>(&fun);
-		};
+		}
 
 		struct fcloser {
 			void operator()(FILE* fp) { fclose(fp); }
@@ -43,7 +44,7 @@ namespace mgps::plugins::host {
 		char path[BUFFER_SIZE] = "";
 
 		while (fgets(buffer, BUFFER_SIZE, fp.get())) {
-			if (sscanf(buffer, "%*llx-%*llx %*s %*s %*s %*s %s", path) == 1) {
+			if (sscanf(buffer, "%*s-%*s %*s %*s %*s %*s %s", path) == 1) {
 				auto candidate = std::filesystem::path{path};
 				if (candidate.filename() == di.dli_fname) {
 					return candidate;

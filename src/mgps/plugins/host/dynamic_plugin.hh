@@ -5,6 +5,7 @@
 
 namespace mgps::plugins::host {
 	struct library_info {
+		std::string path;
 		std::string name;
 		loader library;
 		bool (*on_probe)(char const* filename) = nullptr;

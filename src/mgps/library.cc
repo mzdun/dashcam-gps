@@ -33,7 +33,7 @@ namespace mgps {
 
 	void library::before_update() { footage_.clear(); }
 
-	bool library::add_file(fs::path const& filename, logger* out) {
+	bool library::add_file(fs::path const& filename, logger*) {
 		footage_.emplace_back();
 		auto const filename_str = filename.string();
 		for (auto& plugin : plugins_) {

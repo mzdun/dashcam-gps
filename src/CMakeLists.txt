@@ -57,7 +57,7 @@ endif()
 add_library(mgps STATIC ${MGPS_SOURCES})
 
 target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
-target_link_libraries(mgps date::date fs-polyfill)
+target_link_libraries(mgps date::date fs-polyfill dl)
 
 dir_filters(MGPS_SOURCES)
 set_target_properties(mgps PROPERTIES

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mgps/plugins/host/dynamic_plugin.hh>
 #include <filesystem>
+#include <mgps/plugins/host/dynamic_plugin.hh>
 
 namespace mgps::plugins::host {
 	namespace fs = std::filesystem;
@@ -11,4 +11,4 @@ namespace mgps::plugins::host {
 
 		void lookup_plugins(std::error_code& ec);
 	};
-};  // namespace mgps::plugins::host
+}  // namespace mgps::plugins::host
