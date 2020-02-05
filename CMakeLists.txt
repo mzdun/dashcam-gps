@@ -25,7 +25,28 @@ set(FOLDER_CORE "Core")
 set(FOLDER_EXTRAS "Core/Extras")
 set(FOLDER_EXTERNAL "External")
 
+option(MGPS_BUILD_TOOLS "If selected, will build html+svg and listing" OFF)
+option(MGPS_BUILD_QT5 "If selected, will build qt5-player; needs Qt5_DIR variable" OFF)
+option(MGPS_BUILD_JNI "If selected, will try to build Java/JNI code even without Android" OFF)
+option(MGPS_BUILD_70MAI "If selected, will build mgps-plugin-70mai" OFF)
+
+# Taken from https://github.com/HowardHinnant/date
+function(print_option OPT)
+    if (NOT DEFINED PRINT_OPTION_CURR_${OPT} OR (NOT PRINT_OPTION_CURR_${OPT} STREQUAL ${OPT}))
+        set(PRINT_OPTION_CURR_${OPT} ${${OPT}} CACHE BOOL "" FORCE)
+        mark_as_advanced(PRINT_OPTION_CURR_${OPT})
+        message("# mgps: ${OPT} ${${OPT}}")
+    endif( )
+endfunction( )
+
+foreach(OPT MGPS_BUILD_TOOLS MGPS_BUILD_QT5 MGPS_BUILD_70MAI)
+	print_option(${OPT})
+endforeach()
 if (NOT ANDROID)
+	print_option(MGPS_BUILD_JNI)
+endif()
+
+if (NOT ANDROID AND MGPS_BUILD_JNI)
     find_package(JNI)
 endif()
 
