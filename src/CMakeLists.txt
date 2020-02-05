@@ -67,3 +67,6 @@ dir_filters(MGPS_SOURCES)
 set_target_properties(mgps PROPERTIES
     FOLDER ${FOLDER_CORE}
     POSITION_INDEPENDENT_CODE ON)
+install(TARGETS mgps)
+install(DIRECTORY mgps/ DESTINATION include/mgps FILES_MATCHING PATTERN "*.hh")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh DESTINATION include/mgps)

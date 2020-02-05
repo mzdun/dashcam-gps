@@ -19,24 +19,26 @@ if (NOT HAS_STD_FILESYSTEM)
     endif()
 endif()
 
+set(FILESYSTEM_BACKING "NOTFOUND")
+
 if (HAS_STD_FILESYSTEM OR HAS_STD_FILESYSTEM_STDCXXFS OR HAS_STD_FILESYSTEM_CXXFS)
     add_library(fs-polyfill INTERFACE IMPORTED GLOBAL)
     
     if (HAS_LIBCXX AND HAS_STD_FILESYSTEM_CXXFS)
-        message(STATUS "<filesystem> implemented with libc++fs")
+        set(FILESYSTEM_BACKING "libc++fs")
         target_link_libraries(fs-polyfill INTERFACE c++fs)
     elseif (NOT HAS_LIBCXX AND HAS_STD_FILESYSTEM_STDCXXFS)
-        message(STATUS "<filesystem> implemented with libstdc++fs")
+        set(FILESYSTEM_BACKING "libstdc++fs")
         target_link_libraries(fs-polyfill INTERFACE stdc++fs)
     elseif (MSVC)
-        message(STATUS "<filesystem> implemented with msvcrt")
+        set(FILESYSTEM_BACKING "msvcrt")
     elseif (HAS_LIBCXX)
-        message(STATUS "<filesystem> implemented with libc++")
+        set(FILESYSTEM_BACKING "libc++")
     else()
-        message(STATUS "<filesystem> implemented with libstdc++")
+        set(FILESYSTEM_BACKING "libstdc++")
     endif()
 elseif (ANDROID)
-    message(STATUS "<filesystem> implemented with libfs-polyfill (libc++fs)")
+    set(FILESYSTEM_BACKING "libfs-polyfill (libc++fs)")
     add_library(fs-polyfill STATIC
             operations.cpp
             directory_iterator.cpp
@@ -45,6 +47,15 @@ elseif (ANDROID)
     set_target_properties(fs-polyfill PROPERTIES
         FOLDER ${FOLDER_APPS_EXTRAS}
         POSITION_INDEPENDENT_CODE ON)
+    install(TARGETS fs-polyfill)
+endif()
+
+if(FILESYSTEM_BACKING)
+    if (NOT DEFINED PRINT_OPTION_CURR_FILESYSTEM_BACKING OR (NOT PRINT_OPTION_CURR_FILESYSTEM_BACKING STREQUAL FILESYSTEM_BACKING))
+        set(PRINT_OPTION_CURR_FILESYSTEM_BACKING ${FILESYSTEM_BACKING} CACHE BOOL "" FORCE)
+        mark_as_advanced(PRINT_OPTION_CURR_FILESYSTEM_BACKING)
+        message(STATUS "<filesystem> implemented with ${FILESYSTEM_BACKING}")
+    endif( )
 else()
     message(FATAL_ERROR "<filesystem> implementation is missing")
 endif()
