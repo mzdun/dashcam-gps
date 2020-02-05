@@ -1,0 +1,6 @@
+[requires]
+date/2.4.1
+CTRE/v2.7@ctre/stable
+
+[generators]
+cmake

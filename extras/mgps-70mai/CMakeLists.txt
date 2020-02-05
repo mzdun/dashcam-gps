@@ -10,7 +10,7 @@ set(PLUGIN_SOURCES
 add_library(mgps-70mai STATIC ${PLUGIN_SOURCES})
 
 target_include_directories(mgps-70mai PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(mgps-70mai PUBLIC mgps PRIVATE ctre::ctre)
+target_link_libraries(mgps-70mai PUBLIC mgps PRIVATE CONAN_PKG::CTRE)
 set_target_properties(mgps-70mai PROPERTIES
     FOLDER ${FOLDER_EXTRAS}
     POSITION_INDEPENDENT_CODE ON)

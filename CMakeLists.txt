@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(dashcam-gps
     DESCRIPTION "Library and player for movie clips with accompanying GPS info"
-    VERSION 0.1.0.0
+    VERSION 0.1.0
     LANGUAGES CXX)
 
 set(PROJECT_VERSION_STABILITY "-alpha") # or "-beta", or "-rc1", or "-rc2", or ""
@@ -19,11 +19,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # March 2017 does not work for VC and gcc...
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
 
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
+
 set(FOLDER_APPS "Apps")
 set(FOLDER_APPS_EXTRAS "Apps/Extras")
 set(FOLDER_CORE "Core")
 set(FOLDER_EXTRAS "Core/Extras")
-set(FOLDER_EXTERNAL "External")
 
 option(MGPS_BUILD_TOOLS "If selected, will build html+svg and listing" OFF)
 option(MGPS_BUILD_QT5 "If selected, will build qt5-player; needs Qt5_DIR variable" OFF)
@@ -50,7 +52,6 @@ if (NOT ANDROID AND MGPS_BUILD_JNI)
     find_package(JNI)
 endif()
 
-add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(extras)
 add_subdirectory(apps)
