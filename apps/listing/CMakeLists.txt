@@ -6,3 +6,5 @@ set_target_properties(listing PROPERTIES FOLDER ${FOLDER_APPS})
 
 include(application)
 bindir(listing)
+
+install(TARGETS listing)

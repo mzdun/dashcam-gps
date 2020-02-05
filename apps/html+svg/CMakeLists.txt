@@ -6,3 +6,5 @@ set_target_properties(html+svg PROPERTIES FOLDER ${FOLDER_APPS})
 
 include(application)
 bindir(html+svg)
+
+install(TARGETS html+svg)

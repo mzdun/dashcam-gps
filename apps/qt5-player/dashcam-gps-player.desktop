@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Dashcam GPS Viewer
+Comment=Viewer for video footage with GPS data
+Exec=dashcam-gps-player
+Icon=dashcam-gps-player
+Categories=Video;

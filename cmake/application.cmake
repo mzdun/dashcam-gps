@@ -1,6 +1,6 @@
 function(bindir TARGET)
     set(__ARCH $<IF:$<EQUAL:8,${CMAKE_SIZEOF_VOID_P}>,x64,x86>)
-    set(__DIR "${PROJECT_BINARY_DIR}/bin")
+    set(__DIR "${PROJECT_BINARY_DIR}/out/usr/bin")
     set_target_properties(${TARGET} PROPERTIES
         DEBUG_POSTFIX "_d"
         RELWITHDEBINFO_POSTFIX "_opt"
@@ -14,7 +14,7 @@ function(bindir TARGET)
 endfunction(bindir)
 
 function(plugindir TARGET)
-    set(__DIR "${PROJECT_BINARY_DIR}/bin/mgps-plugins")
+    set(__DIR "${PROJECT_BINARY_DIR}/out/usr/bin/mgps-plugins")
     set_target_properties(${TARGET} PROPERTIES
         DEBUG_POSTFIX "_d"
         RELWITHDEBINFO_POSTFIX "_opt"

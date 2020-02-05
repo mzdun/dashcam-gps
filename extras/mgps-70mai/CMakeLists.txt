@@ -36,3 +36,5 @@ if (NOT ANDROID)
     include(application)
     plugindir(mgps-plugin-70mai)
 endif()
+
+install(TARGETS mgps-plugin-70mai DESTINATION bin/mgps-plugin)
