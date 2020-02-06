@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 project(dashcam-gps
     DESCRIPTION "Library and player for movie clips with accompanying GPS info"
-    VERSION 0.4.0
+    VERSION 0.4.1
     LANGUAGES CXX)
 
-set(PROJECT_VERSION_STABILITY "-alpha") # or "-beta", or "-rc1", or "-rc2", or ""
+set(PROJECT_VERSION_STABILITY "-alpha" # or "-beta", or "-rc.1", or "-rc.2", or ""
+    CACHE STRING "" FORCE)
+if (DEFINED ENV{PROJECT_VERSION_BUILD_META})
+    set(PROJECT_VERSION_BUILD_META $ENV{PROJECT_VERSION_BUILD_META}
+        CACHE STRING "" FORCE)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

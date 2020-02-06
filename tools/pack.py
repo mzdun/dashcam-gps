@@ -2,7 +2,6 @@
 
 import platform, sys, os
 import shlex
-import shutil
 try:
     import lsb_release
     OS_LINUX_HAS_LSB_REL = True
@@ -68,45 +67,33 @@ def flatten(system_name):
 
 OS_CODE, OS_SUFFIX, PACKAGE_EXT = flatten(platform.system())
 
+keys = {
+    'CMAKE_PROJECT_VERSION', 'PROJECT_VERSION_STABILITY', 'PROJECT_VERSION_BUILD_META'
+}
 with open('build/CMakeCache.txt') as cache:
     for line in cache:
-        line = line.split('PROJECT_VERSION', 1)
+        line = line.split('//', 1)[0].split(':', 1)
         if len(line) < 2: continue
-        line = line[1]
-        if line[0] != ':' and line[0] != '=': continue
-        line = line.split('=', 1)
+        key = line[0].strip()
+        if key not in keys: continue
+        line = line[1].split('=', 1)
         if len(line) < 2: continue
-        PROJECT_VERSION = line[1].strip()
+        globals()[key] = line[1].strip()
 
 PACKAGE_DEST = '../..'
 if OS_CODE == OS_WIN:
     PACKAGE_DEST += '/../artifacts'
+
 PACKAGE_FILENAME = \
-    '{PACKAGE_NAME}-{PROJECT_VERSION}-{OS_SUFFIX}.{PACKAGE_EXT}' \
+    '{PACKAGE_NAME}'\
+    '-'\
+    '{CMAKE_PROJECT_VERSION}' \
+    '{PROJECT_VERSION_STABILITY}' \
+    '{PROJECT_VERSION_BUILD_META}' \
+    '-{OS_SUFFIX}.{PACKAGE_EXT}' \
         .format(**globals())
 
 os.chdir('build/out/usr' if OS_CODE == OS_WIN else 'artifacts/usr/local')
-
-# Until I learn how to use conan consitently and could remove the external
-PATH_BLACKLIST = [
-    'include/date/',
-    'lib/cmake/date/',
-    'share/cmake/ctre/',
-    'include/unicode-db/',
-    'include/ctll.hpp',
-    'include/ctre.hpp',
-    'include/ctll/',
-    'include/ctre/',
-]
-
-for rm_path in PATH_BLACKLIST:
-    try:
-        if os.path.isdir(rm_path):
-            shutil.rmtree(rm_path)
-        else:
-            os.remove(rm_path)
-    except FileNotFoundError:
-        pass
 
 empties = set()
 for dirpath, dirnames, filenames in os.walk('.'):

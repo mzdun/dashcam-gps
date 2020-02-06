@@ -77,9 +77,15 @@ With Conan, setting up debug builds and run tests/collect coverage from them sho
 
 ### SymVer
 
-Before 1.0, the version might be `0.$MINOR.$PATCH-$STABILITY+$DATE$TIME` for normal builds and `0.$MINOR.$PATCH-$STABILITY+build.$NIGHTLY` if built from tags `v0.$MINOR.$PATCH/$NIGHTLY`. 
+Before 1.0, the version might be `0.$MINOR.$PATCH-$STABILITY+dev.$DATE$TIME` for normal builds and `0.$MINOR.$PATCH-$STABILITY+build.$NIGHTLY` if built from tags `v0.$MINOR.$PATCH/$NIGHTLY`. 
 
-_PATCH_ will idealy be updated before each push, _MINOR_ after a new functionality is finished, _NIGHTLY_ through a cron job (checking if anything was pushed between consecutive runs). _MINOR_ would only reset the _PATCH_, but not _NIGHTLY_. For file names, the meta separator will need to be `-`.
+- _STABILITY_ will be present only, if the CMake variable is not empty.
+- _PATCH_ will idealy be updated before each push, _MINOR_ after a new functionality is finished, _NIGHTLY_ through a cron job (checking if anything was pushed between consecutive runs).
+- _MINOR_ would only reset the _PATCH_, but not _NIGHTLY_. For file names, the meta separator will need to be `-`.
+
+Starting with 1.0, the _MAJOR_ will also be present. This means, that before each push an analysis of the change must be done to try and check, if there were any API-breaking updates.
+
+Releases should follow the `X.Y.Z` short form &mdash; there are no stability tag past the `rc.#`, there should be no metadata needed.
 
 The build meta would require a single point of truth, a Jenkins stage checking the time and/or setting the build number.
 

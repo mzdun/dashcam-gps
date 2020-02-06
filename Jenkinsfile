@@ -99,6 +99,14 @@ def createJob(Map platform, Map build) {
     }
 }
 
+stage('SemVer+meta') {
+    node("linux") {
+        script {
+            env.PROJECT_VERSION_BUILD_META = sh(script:"date ++dev.%m%d%H%M%S", returnStdout: true).trim()
+        }
+    }
+}
+
 stage('Build') {
     Map tasks = [:]
     for(platform in platforms) {
