@@ -3,50 +3,23 @@ def builds = [
     [name: 'Tools', args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_TOOLS=ON', archive: 'dashcam-gps-tools',      type: 'release']
 ]
 
-def createCMakeBuild(Map os, Map task) {
-    if (!os.builds.containsKey(task.type))
-        return
-
-    Map opts = [:]
-    opts.installation = 'CMake-3.16'
-    opts.buildDir = 'build'
-    opts.cleanBuild = true
-
-    Map type = os.builds[task.type]
-    if (type.containsKey('build'))
-        opts.buildType = type.build
-    if (type.containsKey('generator'))
-        opts.generator = type.generator
-    if (type.containsKey('steps'))
-        opts.steps = type.steps
-    
-    if (task.containsKey('args'))
-        opts.cmakeArgs = task.args
-
-    cmakeBuild( opts )
-}
-
 Map posix = [
-    python: '',
-    ext: 'tar.gz',
     call: { String script, String label -> sh script:script, label:label },
     builds: [
         release: [ build: 'Release', generator: 'Ninja',
             steps: [
-                [ args: 'all' ], [ args: 'install', envVars: 'DESTDIR=${WORKSPACE}/artifacts' ]
+                [ args: 'all' ], [ args: 'install', env: ['DESTDIR=../artifacts'] ]
             ]
         ]
     ]
 ]
 
 Map windows = [
-    python: 'py ',
-    ext: 'zip',
     call: { String script, String label -> bat script:"@${script}", label:label },
     builds: [
         release: [
             steps: [
-                [ args: '-- -nologo -m -v:m -p:Configuration=Release', withCmake: true ]
+                [ args: '-nologo -m -v:m -p:Configuration=Release' ]
             ]
         ]
     ]
@@ -58,9 +31,55 @@ def platforms = [
     [name: 'MacOS', node: 'mac', os: posix ]
 ]
 
+def createCMakeBuild(Map os, Map task) {
+    if (!os.builds.containsKey(task.type))
+        return
+
+    Map type = os.builds[task.type]
+
+    String cmakeBinary = env.CMAKE_BINARY ?: "cmake"
+    String conanBinary = env.CONAN_BINARY ?: "conan"
+
+    String cmakeConfigure = "${cmakeBinary}"
+
+    if (type.containsKey('generator')) {
+        cmakeConfigure += " -G \"${type.generator}\""
+    }
+    if (type.containsKey('build')) {
+        cmakeConfigure += " -DCMAKE_BUILD_TYPE=" + type.build
+    }
+
+    if (task.containsKey('args')) {
+        cmakeConfigure += " ${task.args}";
+    }
+
+    cmakeConfigure += " ..";
+
+    os.call("${conanBinary} install .. --build missing", 'Get dependencies')
+    os.call(cmakeConfigure, 'Generate build from CMake')
+
+
+    if (type.containsKey('steps')) {
+        String buildArgs = "${cmakeBinary} --build ."
+        for (step in type.steps) {
+            String stepArgs = "${buildArgs}"
+            if (step.containsKey('args')) {
+                stepArgs += ' -- '
+                stepArgs += step.args
+            }
+            if (step.containsKey('env')) {
+                withEnv(step.env) {
+                    os.call(stepArgs, null)
+                }
+            } else {
+                os.call(stepArgs, null)
+            }
+        }
+    }
+}
+
 def createJob(Map platform, Map build) {
     Map os = platform.os
-    String archiveExt = os.ext
     String nodeLabel = platform.node
     String stageName = "${build.name} (${platform.name})"
     return {
@@ -68,9 +87,13 @@ def createJob(Map platform, Map build) {
             node("${nodeLabel}") {
                 echo "[${env.NODE_NAME}] ${WORKSPACE}"
                 checkout scm
-                createCMakeBuild(os, build)
-                os.call("${os.python}tools/pack.py ${build.archive}", 'Pack archives')
-                archiveArtifacts "artifacts/${build.archive}-*.${archiveExt}"
+
+                dir('build') {
+                    createCMakeBuild(os, build)
+                }
+
+                os.call("python3 tools/pack.py ${build.archive}", 'Pack archives')
+                archiveArtifacts "artifacts/${build.archive}-*"
             }
         }
     }
