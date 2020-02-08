@@ -60,3 +60,5 @@ endif()
 add_subdirectory(src)
 add_subdirectory(extras)
 add_subdirectory(apps)
+
+include(packing)

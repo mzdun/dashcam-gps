@@ -35,14 +35,16 @@ target_include_directories(qt5-player PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 include(dir_filters)
 dir_filters(PLAYER_SRCS)
 
-include(application)
-bindir(qt5-player)
+# set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+# include(InstallRequiredSystemLibraries)
 
-set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-include(InstallRequiredSystemLibraries)
-
-install(TARGETS qt5-player)
+install(TARGETS qt5-player COMPONENT qt5)
 if (UNIX)
-    install(FILES dashcam-gps-player.desktop DESTINATION share/applications)
-    install(FILES img/icon.png DESTINATION share/icons/hicolor/256x256/apps RENAME dashcam-gps-player.png)
+    install(FILES dashcam-gps-player.desktop
+        DESTINATION share/applications
+        COMPONENT qt5)
+    install(FILES img/icon.png
+        DESTINATION share/icons/hicolor/256x256/apps
+        COMPONENT qt5
+        RENAME dashcam-gps-player.png)
 endif()

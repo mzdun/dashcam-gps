@@ -66,7 +66,22 @@ endif()
 dir_filters(MGPS_SOURCES)
 set_target_properties(mgps PROPERTIES
     FOLDER ${FOLDER_CORE}
-    POSITION_INDEPENDENT_CODE ON)
-install(TARGETS mgps)
-install(DIRECTORY mgps/ DESTINATION include/mgps FILES_MATCHING PATTERN "*.hh")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh DESTINATION include/mgps)
+    POSITION_INDEPENDENT_CODE ON
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
+
+install(TARGETS mgps 
+    ARCHIVE COMPONENT dev
+    OBJECTS COMPONENT dev
+    LIBRARY
+        COMPONENT library
+        NAMELINK_COMPONENT dev
+    RUNTIME COMPONENT library)
+install(DIRECTORY mgps/
+    COMPONENT dev
+    DESTINATION include/mgps
+    FILES_MATCHING PATTERN "*.hh")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh
+    COMPONENT dev
+    DESTINATION include/mgps)
+        

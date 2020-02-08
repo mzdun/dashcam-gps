@@ -1,14 +1,13 @@
 def builds = [
-    [name: 'Qt5',   args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON',   archive: 'dashcam-gps-qt5-player', type: 'release'],
-    [name: 'Tools', args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_TOOLS=ON', archive: 'dashcam-gps-tools',      type: 'release']
+    [name: 'Release',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON', type: 'release'],
 ]
 
 Map posix = [
     call: { String script, String label -> sh script:script, label:label },
     builds: [
-        release: [ build: 'Release', generator: 'Ninja',
+        release: [ build: 'Release', generator: 'Ninja', packer: 'TGZ',
             steps: [
-                [ args: 'all' ], [ args: 'install', env: ['DESTDIR=../artifacts'] ]
+                [ args: 'all' ]
             ]
         ]
     ]
@@ -18,6 +17,7 @@ Map windows = [
     call: { String script, String label -> bat script:"@${script}", label:label },
     builds: [
         release: [
+            packer: 'ZIP',
             steps: [
                 [ args: '-nologo -m -v:m -p:Configuration=Release' ]
             ]
@@ -76,6 +76,8 @@ def createCMakeBuild(Map os, Map task) {
             }
         }
     }
+
+    os.call("cpack -G ${type.packer}")
 }
 
 def createJob(Map platform, Map build) {
@@ -92,8 +94,7 @@ def createJob(Map platform, Map build) {
                     createCMakeBuild(os, build)
                 }
 
-                os.call("python3 tools/pack.py ${build.archive}", 'Pack archives')
-                archiveArtifacts "artifacts/${build.archive}-*"
+                archiveArtifacts "build/dashcam-gps-*"
             }
         }
     }

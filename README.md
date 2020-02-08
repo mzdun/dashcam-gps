@@ -75,7 +75,7 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release \
 
 With Conan, setting up debug builds and run tests/collect coverage from them should be easy. Priority is on the libraries (`src\mgps`, `extras\mgps-70mai`).
 
-### SymVer
+### SemVer
 
 Before 1.0, the version might be `0.$MINOR.$PATCH-$STABILITY+dev.$DATE$TIME` for normal builds and `0.$MINOR.$PATCH-$STABILITY+build.$NIGHTLY` if built from tags `v0.$MINOR.$PATCH/$NIGHTLY`. 
 

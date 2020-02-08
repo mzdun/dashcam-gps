@@ -14,7 +14,7 @@ function(bindir TARGET)
 endfunction(bindir)
 
 function(plugindir TARGET)
-    set(__DIR "${PROJECT_BINARY_DIR}/out/usr/bin/mgps-plugins")
+    set(__DIR "${PROJECT_BINARY_DIR}/out/usr/lib/mgps")
     set_target_properties(${TARGET} PROPERTIES
         DEBUG_POSTFIX "_d"
         RELWITHDEBINFO_POSTFIX "_opt"
