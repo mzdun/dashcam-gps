@@ -3,20 +3,15 @@ add_subdirectory(fs-polyfill)
 include(warnings)
 include(dir_filters)
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.in.hh" "${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh" @ONLY)
+add_subdirectory(common)
+add_subdirectory(plugin)
 
 set(MGPS_SOURCES
-    mgps/clocks.cc
-    mgps/clocks.hh
-    mgps/cstdio.cc
-    mgps/cstdio.hh
-    mgps/isom.cc
-    mgps/isom.hh
+    mgps/api.hh
+    mgps/export.hh
     mgps/library.cc
     mgps/library.hh
-    mgps/media_file.cc
     mgps/media_file.hh
-    mgps/plugins/client.hh
     mgps/plugins/host/dynamic_plugin.cc
     mgps/plugins/host/dynamic_plugin.hh
     mgps/plugins/host/host.cc
@@ -24,24 +19,11 @@ set(MGPS_SOURCES
     mgps/plugins/host/loader.hh
     mgps/plugins/plugin_interface.cc
     mgps/plugins/plugin_interface.hh
-    mgps/track/boundary.cc
-    mgps/track/boundary.hh
-    mgps/track/coordinate.cc
-    mgps/track/coordinate.hh
     mgps/track/point.cc
-    mgps/track/point.hh
     mgps/track/polyline.cc
-    mgps/track/polyline.hh
-    mgps/track/speed.cc
-    mgps/track/speed.hh
     mgps/track/trace.cc
-    mgps/track/trace.hh
     mgps/trip.cc
     mgps/trip.hh
-    mgps/video/media_clip.cc
-    mgps/video/media_clip.hh
-    mgps/video/playlist.cc
-    mgps/video/playlist.hh
 )
 
 if (UNIX)
@@ -54,13 +36,17 @@ else()
     )
 endif()
 
-add_library(mgps STATIC ${MGPS_SOURCES})
+add_library(mgps SHARED ${MGPS_SOURCES})
 
 target_include_directories(mgps PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include")
-target_link_libraries(mgps CONAN_PKG::date fs-polyfill)
+target_link_libraries(mgps PUBLIC fs-polyfill mgps-common PRIVATE mgps-plugin)
+target_compile_definitions(mgps PRIVATE MGPS_COMPILED=1)
+if (NOT MSVC)
+    target_compile_options(mgps PRIVATE -fvisibility=hidden)
+endif()
 
 if (UNIX)
-    target_link_libraries(mgps dl)
+    target_link_libraries(mgps PUBLIC dl)
 endif()
 
 dir_filters(MGPS_SOURCES)
@@ -81,7 +67,4 @@ install(DIRECTORY mgps/
     COMPONENT dev
     DESTINATION include/mgps
     FILES_MATCHING PATTERN "*.hh")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh
-    COMPONENT dev
-    DESTINATION include/mgps)
         

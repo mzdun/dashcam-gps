@@ -62,7 +62,7 @@ namespace mgps::declarative {
 		void populateLines();
 		size_t currentIndex();
 		local_ms playbackToLocal(playback_ms) const;
-		std::pair<QGeoCoordinate, track::speed> travelToPosition(
+		std::pair<QGeoCoordinate, track::speed_km> travelToPosition(
 		    playback_ms) const;
 
 		playback_ms getOffset(size_t currentFile) {
@@ -77,7 +77,7 @@ namespace mgps::declarative {
 		ch::milliseconds duration_{};
 		playback_ms playback_{};
 		QGeoCoordinate car_position_{};
-		track::speed car_speed_{};
+		track::speed_km car_speed_{};
 		QVariantList lines_{};
 		std::vector<playback_ms> offsets_{};
 		QMediaPlayer* player_{nullptr};

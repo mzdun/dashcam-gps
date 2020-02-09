@@ -1,3 +1,5 @@
+#include <mgps/api.hh>
+#include <mgps/track/point.hh>
 #include <mgps/track/polyline.hh>
 
 namespace mgps::track {
@@ -11,9 +13,22 @@ namespace mgps::track {
 		return from + (to - from) * fraction / whole;
 	}
 
-	gps_point polyline::playback_to_position(playback_ms position,
-	                                         bool interpolate) const noexcept {
-		position -= offset.time_since_epoch();
+	uint64_t MGPS_EXPORT distance(track::polyline const* that) noexcept {
+		if (that->points.empty()) return 0;
+		uint64_t result{};
+		gps_point const* previous = nullptr;
+		for (auto& pt : that->points) {
+			if (previous) result += distance(*previous, pt);
+			previous = &pt;
+		}
+		return result;
+	}
+
+	track::gps_point MGPS_EXPORT
+	playback_to_position(track::polyline const* that,
+	                     playback_ms position,
+	                     bool interpolate) noexcept {
+		position -= that->offset.time_since_epoch();
 
 		auto const time = [=]() {
 			gps_point out{};
@@ -21,20 +36,20 @@ namespace mgps::track {
 			return out;
 		}();
 
-		auto it = std::upper_bound(begin(points), end(points), time,
+		auto it = std::upper_bound(begin(that->points), end(that->points), time,
 		                           [](auto const& lhs, auto const& rhs) {
 			                           return lhs.offset < rhs.offset;
 		                           });
 
-		if (it != begin(points)) std::advance(it, -1);
-		if (it == end(points)) return {};
+		if (it != begin(that->points)) std::advance(it, -1);
+		if (it == end(that->points)) return {};
 
 		auto const& sure = *it;
 		if (!interpolate) return sure;
 		if (sure.offset > position.time_since_epoch()) return sure;
 
 		std::advance(it, 1);
-		if (it == end(points)) return sure;
+		if (it == end(that->points)) return sure;
 
 		auto const& next = *it;
 

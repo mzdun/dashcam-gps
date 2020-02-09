@@ -100,7 +100,7 @@ namespace date {
 		    std::basic_string<CharT, Traits, Alloc>* abbrev,
 		    std::chrono::minutes* offset);
 	};
-}
+}  // namespace date
 
 namespace mgps {
 	namespace ch = std::chrono;
@@ -122,5 +122,4 @@ namespace mgps {
 		playback_ms offset;
 		ch::milliseconds duration;
 	};
-
 }  // namespace mgps

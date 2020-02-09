@@ -1,6 +1,6 @@
-#include <mgps/cstdio.hh>
+#include <mgps/plugin/cstdio.hh>
 
-namespace mgps::isom::cstdio {
+namespace mgps::plugin::isom::cstdio {
 	uint64_t storage::offset() const noexcept { return 0u; }
 	bool storage::eof() const noexcept { return std::feof(bits_.get()); }
 

@@ -2,7 +2,9 @@
 
 #include <QMediaPlaylist>
 #include <QQmlEngine>
+#include <mgps/track/trace.hh>
 #include <mgps/library.hh>
+#include <mgps/api.hh>
 
 namespace mgps::declarative {
 	using namespace std::chrono;
@@ -106,9 +108,9 @@ namespace mgps::declarative {
 
 			offsets_.reserve(trip_->playlist.media.size());
 			for (auto const& video : trip_->playlist.media) {
-				auto file = trip_->footage(video);
-				auto url = QUrl::fromLocalFile(
-				    QString::fromStdString(file->filename));
+				auto file = footage(trip_, video);
+				auto url =
+				    QUrl::fromLocalFile(QString::fromStdString(file->filename));
 
 				offsets_.push_back(offset);
 				offset += video.duration;
@@ -150,11 +152,11 @@ namespace mgps::declarative {
 		return {};
 	}
 
-	std::pair<QGeoCoordinate, track::speed> QmlTrip::travelToPosition(
+	std::pair<QGeoCoordinate, track::speed_km> QmlTrip::travelToPosition(
 	    playback_ms trip_millis) const {
 		if (!trip_) return {};
 
-		auto pt = trip_->trace.playback_to_position(trip_millis);
+		auto pt = mgps::track::playback_to_position(&trip_->trace, trip_millis);
 		return {{pt.lat.as_float(), pt.lon.as_float()}, pt.kmph};
 	}
 }  // namespace mgps::declarative

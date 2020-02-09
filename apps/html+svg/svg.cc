@@ -5,8 +5,8 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <mgps/api.hh>
 #include <mgps/library.hh>
-#include <mgps/cstdio.hh>
 #include <mgps/trip.hh>
 #include <optional>
 
@@ -47,7 +47,6 @@ std::ostream& operator<<(std::ostream& out, mgps::clip clip_type) {
 }
 
 namespace mgps::svg {
-	using namespace mgps::isom;
 	using hourf = ch::duration<double, ch::hours::period>;
 
 	struct lat_lon {
@@ -176,7 +175,7 @@ namespace mgps::svg {
 		}
 
 		for (auto& line : trace.lines) {
-			auto const distance = double(line.distance()) / 1000.0;
+			auto const distance = double(track::distance(&line)) / 1000.0;
 			out << "<g>\n";
 			bool first_point = true;
 			out << R"(<path d=")";
@@ -220,10 +219,11 @@ namespace mgps::svg {
 		uint64_t dist{};
 		for (auto& line : trip.trace.lines) {
 			driven += line.duration;
-			dist += line.distance();
+			dist += track::distance(&line);
 		}
 
-		auto const start_hour = trip.start - date::floor<date::days>(trip.start);
+		auto const start_hour =
+		    trip.start - date::floor<date::days>(trip.start);
 
 		out << R"(
 <h2>)" << date::floor<ch::minutes>(start_hour)
@@ -280,7 +280,7 @@ namespace mgps::svg {
 				out << date::floor<ch::seconds>(clip.offset).time_since_epoch();
 			out << "</td><td class=\"num\">" << clip.duration << "</td><td>";
 
-			auto file = trip.footage(clip);
+			auto file = footage(&trip, clip);
 			if (file) {
 				out << R"(<a target="player-page" href=")";
 				bool printed_proximate = false;

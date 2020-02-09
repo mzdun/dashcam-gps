@@ -5,7 +5,7 @@
 
 namespace mgps::plugins::host {
 	namespace fs = std::filesystem;
-	struct host {
+	struct MGPS_EXPORT host {
 		virtual ~host();
 		virtual bool append(library_info info) = 0;
 

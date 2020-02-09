@@ -7,7 +7,7 @@ namespace mgps {
 	enum class page : int { everything, emergency, parking };
 
 	struct trip;
-	struct logger {
+	struct MGPS_EXPORT logger {
 		virtual ~logger();
 		virtual void log(std::string const& msg) = 0;
 	};
@@ -18,7 +18,7 @@ namespace mgps {
 		static constexpr ch::milliseconds special_gap = ch::minutes{1};
 
 		library() = default;
-		void lookup_plugins(std::error_code& ec);
+		void MGPS_EXPORT lookup_plugins(std::error_code& ec);
 		void add_plugin(plugins::ptr plugin) {
 			plugins_.emplace_back(std::move(plugin));
 		}
@@ -28,15 +28,17 @@ namespace mgps {
 			add_plugin(std::make_unique<Plugin>(std::forward<Args>(args)...));
 		}
 
-		void before_update();
-		bool add_file(fs::path const&, logger* = nullptr);
-		void add_directory(fs::path const&, logger* = nullptr);
-		void after_update();
-		std::vector<trip> build(page kind, ch::milliseconds max_gap) const;
+		void MGPS_EXPORT before_update();
+		bool MGPS_EXPORT add_file(fs::path const&, logger* = nullptr);
+		void MGPS_EXPORT add_directory(fs::path const&, logger* = nullptr);
+		void MGPS_EXPORT after_update();
+		std::vector<trip> MGPS_EXPORT build(page kind,
+		                                    ch::milliseconds max_gap) const;
 		std::vector<media_file> const& footage() const noexcept {
 			return footage_;
 		}
-		media_file const* footage(video::media_clip const& ref) const noexcept;
+		MGPS_EXPORT media_file const* footage(
+		    video::media_clip const& ref) const noexcept;
 
 	private:
 		void log(std::string const& msg, logger* out) {

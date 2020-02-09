@@ -21,6 +21,4 @@ namespace mgps::track {
 				return lat;
 		}
 	};
-
-	uint64_t distance(point const& p1, point const& p2);
 }  // namespace mgps::track

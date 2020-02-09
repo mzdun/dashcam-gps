@@ -24,6 +24,6 @@ namespace mgps::track {
 			return topLeft.template get<1>() - bottomRight.template get<1>();
 		}
 	};
-	using boundary = boundary_type<point>;
+	using boundary = boundary_type<track::point>;
 
 }  // namespace mgps::track

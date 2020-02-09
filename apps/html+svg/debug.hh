@@ -4,8 +4,7 @@
 #include <mgps/track/coordinate.hh>
 
 std::ostream& operator<<(std::ostream& dbg, date::local_days const& time);
-std::ostream& operator<<(std::ostream& dbg,
-                         mgps::local_ms const& time);
+std::ostream& operator<<(std::ostream& dbg, mgps::local_ms const& time);
 std::ostream& operator<<(std::ostream& dbg,
                          std::chrono::milliseconds const& time);
 std::ostream& operator<<(std::ostream& dbg, std::chrono::seconds const& time);

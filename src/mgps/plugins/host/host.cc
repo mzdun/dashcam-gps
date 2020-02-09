@@ -18,7 +18,7 @@ namespace mgps::plugins::host {
 		auto dir = fs::weakly_canonical(so_path.parent_path(), ec2);
 		ec2.clear();
 #if !defined(ANDROID) && !defined(__ANDROID__)
-		dir /= "mgps-plugins";
+		dir /= "mgps";
 #endif
 		auto iter = fs::directory_iterator{dir, ec};
 		if (ec) return;
@@ -68,8 +68,9 @@ namespace mgps::plugins::host {
 			                                   .c_str()};
 			if (!dl) continue;
 
+			using namespace mgps::plugin;
 			auto on_load =
-			    dl.resolve<bool(char const*, media_file*)>("mgps_load");
+			    dl.resolve<bool(char const*, file_info*)>("mgps_load");
 			if (!on_load) {
 				(void)mgps::plugins::host::loader::last_error();
 				continue;

@@ -1,4 +1,5 @@
 #include "debug.hh"
+
 #include <cinttypes>
 
 std::ostream& operator<<(std::ostream& dbg, date::local_days const& time) {
@@ -14,8 +15,7 @@ std::ostream& operator<<(std::ostream& dbg, date::local_days const& time) {
 	return dbg << buffer;
 }
 
-std::ostream& operator<<(std::ostream& dbg,
-                         mgps::local_ms const& time) {
+std::ostream& operator<<(std::ostream& dbg, mgps::local_ms const& time) {
 	using namespace date;
 	using namespace std::chrono;
 	auto dayz = floor<days>(time);
@@ -116,8 +116,8 @@ std::ostream& operator<<(std::ostream& dbg, std::chrono::minutes const& time) {
 std::ostream& operator<<(std::ostream& dbg,
                          mgps::track::coordinate const& pos) {
 	char buffer[200];
-	sprintf(buffer, "%" PRIu64 "&deg;%02" PRIu64 ".%03" PRIu64 "'%c", pos.degrees(),
-	        pos.minutes(), pos.thousandths_of_a_minute(),
+	sprintf(buffer, "%" PRIu64 "&deg;%02" PRIu64 ".%03" PRIu64 "'%c",
+	        pos.degrees(), pos.minutes(), pos.thousandths_of_a_minute(),
 	        to_char(pos.direction));
 	return dbg << buffer;
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <memory>
+#include <mgps/export.hh>
 
 namespace mgps::plugins::host {
 	class loader {
@@ -20,16 +21,16 @@ namespace mgps::plugins::host {
 			return fun;
 		}
 
-		static char const* last_error();
-		static std::filesystem::path current_library_path(std::error_code& ec);
+		static MGPS_EXPORT char const* last_error();
+		static MGPS_EXPORT std::filesystem::path current_library_path(std::error_code& ec);
 
 	private:
 		class handle;
 
-		static handle* load(char const*) noexcept;
-		static void unload(handle*) noexcept;
+		static MGPS_EXPORT handle* load(char const*) noexcept;
+		static MGPS_EXPORT void unload(handle*) noexcept;
 
-		void* resolve(char const*);
+		MGPS_EXPORT void* resolve(char const*);
 
 		struct unloader {
 			void operator()(handle* lib) { unload(lib); }

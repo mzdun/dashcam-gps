@@ -1,9 +1,9 @@
 #pragma once
 #include <cstdio>
 #include <memory>
-#include <mgps/isom.hh>
+#include <mgps/plugin/isom.hh>
 
-namespace mgps::isom::cstdio {
+namespace mgps::plugin::isom::cstdio {
 	struct fcloser {
 		void operator()(FILE* f) { std::fclose(f); }
 	};

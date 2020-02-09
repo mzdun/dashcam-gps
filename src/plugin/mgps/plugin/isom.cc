@@ -1,6 +1,6 @@
-#include <mgps/isom.hh>
+#include <mgps/plugin/isom.hh>
 
-namespace mgps::isom {
+namespace mgps::plugin::isom {
 	std::chrono::milliseconds duration_type::to_chrono() const noexcept {
 		using namespace std::chrono;
 

@@ -13,11 +13,12 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <mgps-70mai/70mai.hh>
-#include <mgps/isom.hh>
-#include <mgps/track/point.hh>
+#include <70mai.hh>
+#include <filesystem>
 
-namespace mgps::isom::mai {
+namespace fs = std::filesystem;
+
+namespace mgps::plugin::isom::mai {
 	namespace {
 		static constexpr auto filenames = ctll::fixed_string{
 		    "^"
@@ -52,7 +53,8 @@ namespace mgps::isom::mai {
 					break;
 			}
 			using Int = std::underlying_type_t<track::NESW>;
-			return static_cast<track::NESW>(std::numeric_limits<Int>::max());
+			return static_cast<track::NESW>(
+			    std::numeric_limits<Int>::max());
 		}
 
 		track::coordinate make_coord(uint32_t deg_min_1000, char direction) {
@@ -90,7 +92,7 @@ namespace mgps::isom::mai {
 			}
 
 			if (data.eof()) return false;
-			auto const kmph = track::speed{(data.get<uint32_t>() + 500) / 1000};
+			auto const metres_per_hour = speed_in_metres{data.get<uint32_t>()};
 
 			if (data.eof()) return false;
 			auto const lat_dir = data.get<char>();
@@ -107,7 +109,7 @@ namespace mgps::isom::mai {
 			pt.lat = latitude;
 			pt.lon = longitude;
 			pt.pos = seconds;
-			pt.kmph = kmph;
+			pt.metres_per_hour = metres_per_hour;
 			pt.valid = true;
 			return true;
 		}
@@ -165,8 +167,7 @@ namespace mgps::isom::mai {
 
 	clip_filename_info get_filename_info(std::string_view filename) {
 		auto const pos = filename.find_last_of(fs::path::preferred_separator);
-		if (pos != std::string_view::npos)
-			filename = filename.substr(pos + 1);
+		if (pos != std::string_view::npos) filename = filename.substr(pos + 1);
 		auto parts = ctre::match<filenames>(filename);
 		if (!parts) return {};
 
@@ -227,4 +228,4 @@ namespace mgps::isom::mai {
 		out = duration.to_chrono();
 		return true;
 	}
-}  // namespace mgps::isom::mai
+}  // namespace mgps::plugin::isom::mai

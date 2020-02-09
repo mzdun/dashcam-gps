@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <mgps/export.hh>
 #include <mgps/track/trace.hh>
 #include <mgps/video/playlist.hh>
 
@@ -12,10 +13,13 @@ namespace mgps {
 		video::playlist playlist;
 		track::trace trace;
 		library const* owner;
-		media_file const* footage(video::media_clip const&) const noexcept;
 
 		local_ms travel_to_local(playback_ms travel) const noexcept {
 			return start + travel.time_since_epoch();
 		}
 	};
+
+	MGPS_EXPORT media_file const* footage(
+	    trip const*,
+	    video::media_clip const&) noexcept;
 }  // namespace mgps

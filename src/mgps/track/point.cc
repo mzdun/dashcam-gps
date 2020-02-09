@@ -1,4 +1,5 @@
 #include <cmath>
+#include <mgps/api.hh>
 #include <mgps/track/point.hh>
 
 namespace mgps::track {

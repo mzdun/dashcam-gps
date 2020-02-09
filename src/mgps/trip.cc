@@ -2,8 +2,8 @@
 #include <mgps/trip.hh>
 
 namespace mgps {
-	media_file const* trip::footage(video::media_clip const& ref) const noexcept {
-		if (!owner) return nullptr;
-		return owner->footage(ref);
+	media_file const* footage(trip const* that, video::media_clip const& ref) noexcept {
+		if (!that->owner) return nullptr;
+		return that->owner->footage(ref);
 	}
 }  // namespace mgps

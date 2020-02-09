@@ -1,4 +1,5 @@
 #include "debug.hh"
+
 #include <cinttypes>
 
 std::ostream& operator<<(std::ostream& dbg, date::local_days const& time) {
@@ -14,8 +15,7 @@ std::ostream& operator<<(std::ostream& dbg, date::local_days const& time) {
 	return dbg << buffer;
 }
 
-std::ostream& operator<<(std::ostream& dbg,
-                         mgps::local_ms const& time) {
+std::ostream& operator<<(std::ostream& dbg, mgps::local_ms const& time) {
 	using namespace date;
 	using namespace std::chrono;
 	auto dayz = floor<days>(time);

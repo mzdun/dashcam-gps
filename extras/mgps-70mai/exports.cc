@@ -1,14 +1,11 @@
+#include <70mai.hh>
 #include <cmath>
-#include <mgps-70mai/plugin.hh>
-#include <mgps/cstdio.hh>
-#include <mgps/track/trace.hh>
-#include <mgps/trip.hh>
-#include <mgps/video/playlist.hh>
-#include <numeric>
+#include <filesystem>
+#include <mgps/plugin/cstdio.hh>
 
 namespace fs = std::filesystem;
 
-namespace mgps::mai::api {
+namespace mgps::plugin::mai::api {
 	namespace {
 		struct file_reader_data {
 			std::chrono::milliseconds duration;
@@ -35,13 +32,13 @@ namespace mgps::mai::api {
 		return true;
 	}
 
-	bool load(char const* filename, media_file* out) {
+	bool load(char const* filename, mgps::plugin::file_info* out) {
 		if (!out) return false;
 
 		using namespace isom;
 		using namespace isom::mai;
 
-		auto info = get_filename_info(filename);
+		auto const info = get_filename_info(filename);
 		if (info.type == clip::unrecognized) return false;
 
 		auto bits = cstdio::open(filename);
@@ -59,27 +56,28 @@ namespace mgps::mai::api {
 		auto const new_size = static_cast<size_t>(
 		    std::distance(std::begin(data.points), new_end));
 
-		out->filename = filename;
-		out->type = info.type;
-		out->date_time = info.ts;
-		out->duration = data.duration;
+		out->set_clip(info.type);
+		out->set_filename(filename);
+		out->set_timestamp(info.ts.time_since_epoch());
+		out->set_duration(data.duration);
 
-		out->points.reserve(new_size);
-		std::transform(std::begin(data.points), new_end,
-		               std::back_inserter(out->points),
-		               [](gps_point& in) -> track::gps_point {
-			               return {{in.lat, in.lon}, in.kmph, in.pos};
-		               });
+		out->before_points(new_size);
+		std::for_each(std::begin(data.points), new_end, [&](gps_point& in) {
+			out->append_point(
+			    {in.lat, in.lon},
+			    track::speed_cast<track::speed_km>(in.metres_per_hour), in.pos,
+			    std::chrono::seconds{1});
+		});
 		return true;
 	}
-}  // namespace mgps::mai::api
+}  // namespace mgps::plugin::mai::api
 
-namespace mgps::mai {
-	bool plugin::probe(char const* filename) const {
-		return api::probe(filename);
-	}
+#ifdef IMPLEMENTING_PLUGIN
+API_EXPORT bool mgps_probe(char const* filename) {
+	return mgps::plugin::mai::api::probe(filename);
+}
 
-	bool plugin::load(char const* filename, media_file* out) const {
-		return api::load(filename, out);
-	}
-}  // namespace mgps::mai
+API_EXPORT bool mgps_load(char const* filename, mgps::plugin::file_info* out) {
+	return mgps::plugin::mai::api::load(filename, out);
+}
+#endif

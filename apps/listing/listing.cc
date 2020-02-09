@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <mgps/api.hh>
 #include <mgps/library.hh>
 #include <mgps/track/trace.hh>
 #include <mgps/trip.hh>
@@ -64,7 +65,7 @@ namespace mgps {
 		uint64_t dist{};
 		for (auto& line : trip.trace.lines) {
 			driven += line.duration;
-			dist += line.distance();
+			dist += track::distance(&line);
 		}
 
 		auto const start_hour =
@@ -112,7 +113,7 @@ namespace mgps {
 			       "<tbody>\n";
 
 			for (auto const& line : trip.trace.lines) {
-				auto distance = line.distance();
+				auto distance = track::distance(&line);
 				out << "<tr>" TDr << line.offset.time_since_epoch()
 				    << "</td>" TDr << line.duration << "</td>" TDr
 				    << line.points.size() << "</td>" TDr

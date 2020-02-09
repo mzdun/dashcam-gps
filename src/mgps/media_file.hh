@@ -1,10 +1,9 @@
 #pragma once
+#include <mgps/clip.hh>
 #include <mgps/track/polyline.hh>
 #include <vector>
 
 namespace mgps {
-	enum class clip : int { unrecognized, normal, emergency, parking, other };
-
 	struct media_file {
 		std::string filename;
 		clip type{clip::unrecognized};

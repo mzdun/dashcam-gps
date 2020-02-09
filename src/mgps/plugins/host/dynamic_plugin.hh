@@ -3,13 +3,18 @@
 #include <mgps/plugins/host/loader.hh>
 #include <mgps/plugins/plugin_interface.hh>
 
+namespace mgps::plugin {
+	struct file_info;
+}
+
 namespace mgps::plugins::host {
 	struct library_info {
 		std::string path;
 		std::string name;
 		loader library;
 		bool (*on_probe)(char const* filename) = nullptr;
-		bool (*on_load)(char const* filename, media_file* out) = nullptr;
+		bool (*on_load)(char const* filename,
+		                mgps::plugin::file_info* out) = nullptr;
 	};
 
 	class dynamic_plugin : public plugins::loader_interface,
@@ -19,4 +24,4 @@ namespace mgps::plugins::host {
 		bool probe(char const* filename) const override;
 		bool load(char const* filename, media_file* out) const override;
 	};
-}  // namespace mgps::host
+}  // namespace mgps::plugins::host

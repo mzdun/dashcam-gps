@@ -5,6 +5,7 @@
 #include <QQmlContext>
 #include <QSettings>
 #include <cinttypes>
+#include <mgps/api.hh>
 #include <mgps/version.hh>
 
 #include "declarative/QmlTrip.hh"

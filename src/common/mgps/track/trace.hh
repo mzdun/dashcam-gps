@@ -4,14 +4,20 @@
 namespace mgps::track {
 	struct trace : timeline_item {
 		std::vector<polyline> lines;
-		bool has_points() const noexcept;
+
+		bool has_points() const noexcept {
+			for (auto const& line : lines) {
+				if (line.points.empty()) continue;
+				return true;
+			}
+			return false;
+		}
+
 		boundary boundary_box() const noexcept {
 			// Find the boundary with identity function
 			return boundary_box_impl<point>(
 			    [](point const& pt) -> point const& { return pt; });
 		}
-
-		gps_point playback_to_position(playback_ms, bool = true) const noexcept;
 
 		template <typename Point, typename Filter>
 		boundary_type<Point> boundary_box_impl(Filter pred) const noexcept {

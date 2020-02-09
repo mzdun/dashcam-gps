@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace mgps::isom {
+namespace mgps::plugin::isom {
 	enum : uint64_t {
 		UNKNOWN_DURATION_32 = uint32_t(-1),
 		UNKNOWN_DURATION_64 = uint64_t(-1)
@@ -661,28 +661,32 @@ namespace mgps::isom {
 			return false;
 		}
 	};
-}  // namespace mgps::isom
+}  // namespace mgps::plugin::isom
 
-#define TREE_BOX_READER(NAME, STORAGE_TYPE)                                    \
-	struct NAME : ::mgps::isom::tree_box_reader<NAME, STORAGE_TYPE> {          \
-		using parent_type = ::mgps::isom::tree_box_reader<NAME, STORAGE_TYPE>; \
-		using parent_type::parent_type;                                        \
-		inline bool on_child(::mgps::isom::storage& full,                      \
-		                     ::mgps::isom::box_info const& box);               \
-	};                                                                         \
-	bool NAME::on_child([[maybe_unused]] ::mgps::isom::storage& full,          \
-	                    [[maybe_unused]] ::mgps::isom::box_info const& box)
+#define TREE_BOX_READER(NAME, STORAGE_TYPE)                                   \
+	struct NAME : ::mgps::plugin::isom::tree_box_reader<NAME, STORAGE_TYPE> { \
+		using parent_type =                                                   \
+		    ::mgps::plugin::isom::tree_box_reader<NAME, STORAGE_TYPE>;        \
+		using parent_type::parent_type;                                       \
+		inline bool on_child(::mgps::plugin::isom::storage& full,             \
+		                     ::mgps::plugin::isom::box_info const& box);      \
+	};                                                                        \
+	bool NAME::on_child(                                                      \
+	    [[maybe_unused]] ::mgps::plugin::isom::storage& full,                 \
+	    [[maybe_unused]] ::mgps::plugin::isom::box_info const& box)
 
-#define LEAF_BOX_READER(NAME, STORAGE_TYPE)                                    \
-	struct NAME : ::mgps::isom::leaf_box_reader<NAME, STORAGE_TYPE> {          \
-		using parent_type = ::mgps::isom::leaf_box_reader<NAME, STORAGE_TYPE>; \
-		using parent_type::parent_type;                                        \
-		inline bool on_box(::mgps::isom::storage& full,                        \
-		                   ::mgps::isom::box_info const& box);                 \
-	};                                                                         \
-	bool NAME::on_box([[maybe_unused]] ::mgps::isom::storage& full,            \
-	                  [[maybe_unused]] ::mgps::isom::box_info const& box)
+#define LEAF_BOX_READER(NAME, STORAGE_TYPE)                                   \
+	struct NAME : ::mgps::plugin::isom::leaf_box_reader<NAME, STORAGE_TYPE> { \
+		using parent_type =                                                   \
+		    ::mgps::plugin::isom::leaf_box_reader<NAME, STORAGE_TYPE>;        \
+		using parent_type::parent_type;                                       \
+		inline bool on_box(::mgps::plugin::isom::storage& full,               \
+		                   ::mgps::plugin::isom::box_info const& box);        \
+	};                                                                        \
+	bool NAME::on_box(                                                        \
+	    [[maybe_unused]] ::mgps::plugin::isom::storage& full,                 \
+	    [[maybe_unused]] ::mgps::plugin::isom::box_info const& box)
 
-namespace mgps {
+namespace mgps::plugin {
 	using isom::box_type;
 }
