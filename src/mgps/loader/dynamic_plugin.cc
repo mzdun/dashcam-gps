@@ -1,7 +1,7 @@
+#include <mgps/loader/dynamic_plugin.hh>
 #include <mgps/plugin/plugin.hh>
-#include <mgps/plugins/host/dynamic_plugin.hh>
 
-namespace mgps::plugins::host {
+namespace mgps::loader {
 	using namespace mgps::plugin;
 
 	namespace {
@@ -63,4 +63,8 @@ namespace mgps::plugins::host {
 		auto info = conv(out);
 		return on_load(filename, &info);
 	}
-}  // namespace mgps::plugins::host
+
+	plugin_info const& dynamic_plugin::info() const noexcept {
+		return library_info::info;
+	}
+}  // namespace mgps::loader

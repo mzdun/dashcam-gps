@@ -26,5 +26,9 @@ set_target_properties(mgps-plugin-70mai PROPERTIES
 set_plugin_output_directories(mgps-plugin-70mai)
 
 install(TARGETS mgps-plugin-70mai
-    DESTINATION lib/mgps
-    COMPONENT plugin-70mai)
+    LIBRARY
+        DESTINATION lib/mgps
+        COMPONENT plugin-70mai
+    RUNTIME
+        DESTINATION bin/mgps
+        COMPONENT plugin-70mai)

@@ -3,6 +3,7 @@
 #include <mgps/clocks.hh>
 #include <mgps/export.hh>
 #include <mgps/version.hh>
+#include <string_view>
 
 namespace mgps::track {
 	struct point;
@@ -27,3 +28,20 @@ namespace mgps::track {
 	                     playback_ms,
 	                     bool = true) noexcept;
 }  // namespace mgps::track
+
+namespace mgps {
+	struct runtime_version {
+		unsigned major;
+		unsigned minor;
+		unsigned patch;
+
+		struct {
+			std::string_view version;
+			std::string_view shorter;
+			std::string_view stability;
+			std::string_view build_meta;
+			std::string_view ui;
+		} str;
+	};
+	runtime_version MGPS_EXPORT get_version() noexcept;
+}

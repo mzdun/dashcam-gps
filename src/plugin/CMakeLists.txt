@@ -16,6 +16,10 @@ set_target_properties(mgps-plugin PROPERTIES
     FOLDER ${FOLDER_CORE}
     POSITION_INDEPENDENT_CODE ON)
 
+if (NOT MSVC)
+    target_compile_options(mgps-plugin PRIVATE -fvisibility=hidden)
+endif()
+
 install(TARGETS mgps-plugin COMPONENT dev)
 install(DIRECTORY mgps/
     COMPONENT dev

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 	if (argc > 2) {
 		std::ofstream out{argv[2]};
 		if (out.is_open()) {
-			svg::html_trace(out, section);
+			svg::html_trace(out, lib, section);
 			std::error_code ec;
 			auto path = fs::weakly_canonical(fs::path{argv[2]}, ec);
 			if (ec)
@@ -49,5 +49,5 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	svg::html_trace(std::cout, section);
+	svg::html_trace(std::cout, lib, section);
 }

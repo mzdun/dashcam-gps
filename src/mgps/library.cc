@@ -1,17 +1,17 @@
 #include <mgps/library.hh>
-#include <mgps/plugins/host/host.hh>
+#include <mgps/loader/host.hh>
 #include <mgps/trip.hh>
 
 namespace mgps {
 	namespace {
-		class host : public plugins::host::host {
+		class host : public loader::host {
 		public:
 			explicit host(library& ref) : ref_{&ref} {}
 
-			bool append(plugins::host::library_info info) override {
-				plugins::ptr dyn{};
+			bool append(loader::library_info info) override {
+				loader::ptr dyn{};
 				try {
-					dyn = std::make_unique<plugins::host::dynamic_plugin>(
+					dyn = std::make_unique<loader::dynamic_plugin>(
 					    std::move(info));
 				} catch (std::bad_alloc&) {
 					return false;

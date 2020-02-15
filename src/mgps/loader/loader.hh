@@ -3,7 +3,7 @@
 #include <memory>
 #include <mgps/export.hh>
 
-namespace mgps::plugins::host {
+namespace mgps::loader {
 	class loader {
 	public:
 		loader() = default;

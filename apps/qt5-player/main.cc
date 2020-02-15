@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 	app.setOrganizationName("midnightBITS");
 	app.setOrganizationDomain("midnightbits.com");
 	app.setApplicationName("Dashcam GPS Viewer");
-	app.setApplicationVersion(mgps::version::string_ui);
+	app.setApplicationVersion(mgps::version::ui);
 
 	mgps::qmlRegisterTypes();
 

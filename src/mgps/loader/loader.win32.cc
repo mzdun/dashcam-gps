@@ -1,4 +1,4 @@
-#include <mgps/plugins/host/loader.hh>
+#include <mgps/loader/loader.hh>
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -13,7 +13,7 @@
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
-namespace mgps::plugins::host {
+namespace mgps::loader {
 	namespace {
 		template <typename PrivateClass>
 		HMODULE to_platform(PrivateClass* ptr) {
@@ -128,4 +128,4 @@ namespace mgps::plugins::host {
 		return GetProcAddress(to_platform(lib_.get()), function);
 	}
 
-}  // namespace mgps::plugins::host
+}  // namespace mgps::loader

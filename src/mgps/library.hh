@@ -1,5 +1,5 @@
 #pragma once
-#include <mgps/plugins/plugin_interface.hh>
+#include <mgps/loader/plugin_interface.hh>
 #include <mgps/video/media_clip.hh>
 #include <vector>
 
@@ -19,7 +19,7 @@ namespace mgps {
 
 		library() = default;
 		void MGPS_EXPORT lookup_plugins(std::error_code& ec);
-		void add_plugin(plugins::ptr plugin) {
+		void add_plugin(loader::ptr plugin) {
 			plugins_.emplace_back(std::move(plugin));
 		}
 
@@ -40,11 +40,15 @@ namespace mgps {
 		MGPS_EXPORT media_file const* footage(
 		    video::media_clip const& ref) const noexcept;
 
+		std::vector<loader::ptr> const& plugins() const noexcept {
+			return plugins_;
+		}
+
 	private:
 		void log(std::string const& msg, logger* out) {
 			if (out) out->log(msg);
 		}
-		std::vector<plugins::ptr> plugins_{};
+		std::vector<loader::ptr> plugins_{};
 		std::vector<media_file> footage_{};
 	};
 }  // namespace mgps

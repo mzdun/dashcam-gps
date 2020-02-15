@@ -1,10 +1,11 @@
-#include "mgps/plugins/host/loader.hh"
-
 #include <dlfcn.h>
+
 #include <cstring>
 #include <system_error>
 
-namespace mgps::plugins::host {
+#include "mgps/loader/loader.hh"
+
+namespace mgps::loader {
 	namespace {
 		template <typename PrivateClass>
 		void* to_platform(PrivateClass* ptr) {
@@ -72,4 +73,4 @@ namespace mgps::plugins::host {
 		return dlsym(to_platform(lib_.get()), function);
 	}
 
-}  // namespace mgps::plugins::host
+}  // namespace mgps::loader

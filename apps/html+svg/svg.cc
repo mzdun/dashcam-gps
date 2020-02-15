@@ -304,7 +304,35 @@ namespace mgps::svg {
 
 )";
 	}
-	void html_trace(std::ostream& out, std::vector<mgps::trip> const& trips) {
+
+	struct xmlize {
+		std::string_view str;
+		friend std::ostream& operator<<(std::ostream& o, xmlize const& in) {
+			for (auto c : in.str) {
+				switch (c) {
+					default:
+						o << c;
+						break;
+					case '&':
+						o << "&amp;";
+						break;
+					case '<':
+						o << "&lt;";
+						break;
+					case '>':
+						o << "&gt;";
+						break;
+					case '"':
+						o << "&quot;";
+						break;
+				}
+			}
+			return o;
+		}
+	};
+	void html_trace(std::ostream& out,
+	                mgps::library const& lib,
+	                std::vector<mgps::trip> const& trips) {
 		using namespace std::chrono;
 		using namespace date;
 
@@ -325,7 +353,7 @@ h3 { margin-top: 0; }
 
 iframe {
 	position: fixed;
-	bottom: 10pt;
+	bottom: 60pt;
 	right: 10pt;
 	width: 32vw;
 	height: 16vw;
@@ -351,6 +379,35 @@ a { text-decoration: none }
 	vertical-align: sub;
 }
 
+.versions {
+	margin: 2em auto;
+	padding: 0 3em;
+	display: table;
+	font-size: small;
+	color: #ccc;
+}
+
+.versions .module {
+	font-family: monospace, monospace;
+	color: #aaa;
+}
+
+.versions ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.versions ul li {
+	padding-left: 24px;
+}
+
+.versions ul li:before {
+	padding-right: 6px;
+	margin-left: -10px;
+	content: "-";
+}
+
 </style>
 <body>
 
@@ -367,6 +424,58 @@ a { text-decoration: none }
 			trace_trip(out, trip);
 		}
 		out << R"(
+<div class='versions'>Generated using <span class='module'>mGPS <small>()"
+		    << get_version().str.ui << ")</small></span>";
+		auto& plugins = lib.plugins();
+		if (!plugins.empty()) {
+			if (plugins.size() == 1) {
+				out << ", with help from ";
+
+				auto& ptr = plugins.front();
+
+				auto& info = ptr->info();
+
+
+				out << "<span class='module'";
+				if (!info.description.empty())
+					out << " title=\"" << xmlize{info.description}
+					    << "\"";
+				out << '>';
+				if (info.name.empty())
+					out << "[unknown]";
+				else
+					out << xmlize{info.name};
+				if (!info.version.empty())
+					out << " <small>(" << xmlize{info.version} << ")</small>";
+				out << "</span>";
+
+				out << ".";
+			} else {
+				out << ", with help from:\n<ul>";
+
+				for (auto& ptr : plugins) {
+					out << "\n    <li><span class='module'>";
+					auto& info = ptr->info();
+					if (info.name.empty())
+						out << "[unknown]";
+					else
+						out << xmlize{info.name};
+					if (!info.version.empty())
+						out << " <small>(" << xmlize{info.version}
+						    << ")</small>";
+					out << "</span>";
+
+					if (!info.description.empty())
+						out << "<br/><i><small>" << xmlize{info.description}
+						    << "</small></i>";
+
+					out << "</li>";
+				}
+
+				out << "\n</ul>\n";
+			}
+		}
+		out << R"(</div>
 <iframe name="player-page" src="about:blank"></iframe>
 )";
 	}

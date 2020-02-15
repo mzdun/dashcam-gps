@@ -1,9 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <mgps/plugins/host/dynamic_plugin.hh>
+#include <mgps/loader/dynamic_plugin.hh>
 
-namespace mgps::plugins::host {
+namespace mgps::loader {
 	namespace fs = std::filesystem;
 	struct MGPS_EXPORT host {
 		virtual ~host();
@@ -11,4 +11,4 @@ namespace mgps::plugins::host {
 
 		void lookup_plugins(std::error_code& ec);
 	};
-}  // namespace mgps::plugins::host
+}  // namespace mgps::loader
