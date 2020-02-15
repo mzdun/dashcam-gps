@@ -36,6 +36,7 @@ option(MGPS_BUILD_TOOLS "If selected, will build html+svg and listing" OFF)
 option(MGPS_BUILD_QT5 "If selected, will build qt5-player; needs Qt5_DIR variable" OFF)
 option(MGPS_BUILD_JNI "If selected, will try to build Java/JNI code even without Android" OFF)
 option(MGPS_BUILD_70MAI "If selected, will build mgps-plugin-70mai" OFF)
+option(MGPS_PACK_COMPONENTS "If selected, will pack components to the archives of their own" ON)
 
 # Taken from https://github.com/HowardHinnant/date
 function(print_option OPT)
@@ -46,7 +47,7 @@ function(print_option OPT)
     endif( )
 endfunction( )
 
-foreach(OPT MGPS_BUILD_TOOLS MGPS_BUILD_QT5 MGPS_BUILD_70MAI)
+foreach(OPT MGPS_PACK_COMPONENTS MGPS_BUILD_TOOLS MGPS_BUILD_QT5 MGPS_BUILD_70MAI)
 	print_option(${OPT})
 endforeach()
 if (NOT ANDROID)

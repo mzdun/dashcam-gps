@@ -20,7 +20,7 @@ if(${CPACK_SYSTEM_NAME} MATCHES windows)
     endif()
 endif()
 
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ${MGPS_PACK_COMPONENTS})
 
 # This must always be last!
 include(CPack)
