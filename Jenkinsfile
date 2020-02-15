@@ -5,6 +5,7 @@ def builds = [
 
 Map posix = [
     call: { String script, String label -> sh script:script, label:label },
+    env: { sh "printenv" },
     builds: [
         release: [ build: 'Release', generator: 'Ninja', packer: 'TGZ',
             steps: [
@@ -21,6 +22,7 @@ Map posix = [
 
 Map windows = [
     call: { String script, String label -> bat script:"@${script}", label:label },
+    env: { bat "set" },
     builds: [
         release: [
             packer: 'ZIP',
@@ -39,6 +41,22 @@ Map windows = [
     ]
 ]
 
+Map win32 = [
+    call: windows.call,
+    env: windows.env,
+    arch: 'x86',
+    builds: [
+        release: windows.builds.release + [
+            arch: 'Win32',
+            conan: windows.builds.release.conan + [ arch_target: 'x86' ]
+        ],
+        debug: windows.builds.debug + [
+            arch: 'Win32',
+            conan: windows.builds.debug.conan + [ arch_target: 'x86' ]
+        ]
+    ]
+]
+
 Map conan = [
     release: [build_type: 'Release'],
     debug: [build_type: 'Debug']
@@ -47,10 +65,11 @@ Map conan = [
 def platforms = [
     [name: 'Linux', node: 'linux', os: posix ],
     [name: 'Win64', node: 'windows', os: windows ],
+    [name: 'Win32', node: 'windows', os: win32 ],
     [name: 'MacOS', node: 'mac', os: posix ]
 ]
 
-def createCMakeBuild(Map os, Map task, Map conan) {
+def createCMakeBuild(Map conan, Map os, Map task) {
     if (!os.builds.containsKey(task.type))
         return
 
@@ -64,6 +83,11 @@ def createCMakeBuild(Map os, Map task, Map conan) {
     if (type.containsKey('generator')) {
         cmakeConfigure += " -G \"${type.generator}\""
     }
+
+    if (type.containsKey('arch')) {
+        cmakeConfigure += " -A \"${type.arch}\""
+    }
+
     if (type.containsKey('build')) {
         cmakeConfigure += " -DCMAKE_BUILD_TYPE=" + type.build
     }
@@ -107,6 +131,7 @@ def createJob(Map platform, Map build, Map conan) {
     Map os = platform.os
     String nodeLabel = platform.node
     String stageName = "${build.name} (${platform.name})"
+    String arch = os.arch ?: 'x86_64'
     return {
         stage("${stageName}") {
             node("${nodeLabel}") {
@@ -114,7 +139,14 @@ def createJob(Map platform, Map build, Map conan) {
                 checkout scm
 
                 dir("build/${build.type}") {
-                    createCMakeBuild(os, build, conan[build.type] ?: [:])
+                    List vars = []
+                    if (arch == 'x86') {
+                        vars = ["Qt5_DIR=${env.Qt5_DIR_x86}"]
+                    }
+
+                    withEnv(vars) {
+                        createCMakeBuild(conan[build.type] ?: [:], os, build)
+                    }
                 }
 
                 archiveArtifacts "build/${build.type}/dashcam-gps-*"
