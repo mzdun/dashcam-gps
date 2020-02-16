@@ -4,7 +4,7 @@
 #include <string_view>
 
 #if defined(_WIN32)
-#include <mgps/loader/pecoff_parser.hh>
+#include <mgps/loader/parser/pecoff_parser.hh>
 #define SUPPORTS_OFFLINE_VERIFIER 1
 namespace mgps::loader {
 	lib_has offline_plugin_info(std::string const& path, plugin_info& out) {
@@ -13,6 +13,13 @@ namespace mgps::loader {
 }  // namespace mgps::loader
 #elif defined(__APPLE__)
 #elif defined(__linux__)
+#include <mgps/loader/parser/elf_parser.hh>
+#define SUPPORTS_OFFLINE_VERIFIER 1
+namespace mgps::loader {
+	lib_has offline_plugin_info(std::string const& path, plugin_info& out) {
+		return elf_parser_info(path, sizeof(void*), out);
+	}
+}  // namespace mgps::loader
 #endif
 
 namespace mgps::loader {

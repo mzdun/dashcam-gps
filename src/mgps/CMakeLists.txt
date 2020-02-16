@@ -9,8 +9,10 @@ set(MGPS_SOURCES
     loader/host.cc
     loader/host.hh
     loader/loader.hh
-    loader/pecoff_parser.hh
-    loader/pecoff_parser.cc
+    loader/parser/elf_parser.hh
+    loader/parser/elf_parser.cc
+    loader/parser/pecoff_parser.hh
+    loader/parser/pecoff_parser.cc
     loader/plugin_info.cc
     loader/plugin_info.hh
     loader/plugin_interface.cc
