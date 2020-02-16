@@ -1,6 +1,7 @@
+def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON'
 def builds = [
-    [name: 'Release',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON', type: 'release'],
-    [name: 'Debug',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON', type: 'debug'],
+    [name: 'Release',  args: cmakeOpts, type: 'release'],
+    [name: 'Debug',  args: cmakeOpts, type: 'debug'],
 ]
 
 Map posix = [
