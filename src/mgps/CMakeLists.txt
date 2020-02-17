@@ -11,6 +11,8 @@ set(MGPS_SOURCES
     loader/loader.hh
     loader/parser/elf_parser.hh
     loader/parser/elf_parser.cc
+    loader/parser/mach_parser.hh
+    loader/parser/mach_parser.cc
     loader/parser/pecoff_parser.hh
     loader/parser/pecoff_parser.cc
     loader/plugin_info.cc

@@ -11,7 +11,15 @@ namespace mgps::loader {
 		return pecoff_parser_info(path, sizeof(void*), out);
 	}
 }  // namespace mgps::loader
-#elif defined(__APPLE__)
+#elif defined(__MACH__) && defined(__APPLE__)
+#include <mgps/loader/parser/mach_parser.hh>
+// currently, I have little to no knowledge on debuging here, so...
+#define SUPPORTS_OFFLINE_VERIFIER 0
+namespace mgps::loader {
+	lib_has offline_plugin_info(std::string const& path, plugin_info& out) {
+		return mach_parser_info(path, sizeof(void*), out);
+	}
+}  // namespace mgps::loader
 #elif defined(__linux__)
 #include <mgps/loader/parser/elf_parser.hh>
 #define SUPPORTS_OFFLINE_VERIFIER 1
