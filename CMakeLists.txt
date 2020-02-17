@@ -4,20 +4,18 @@ project(dashcam-gps
     VERSION 0.4.2
     LANGUAGES CXX)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 set(PROJECT_VERSION_STABILITY "-alpha" # or "-beta", or "-rc.1", or "-rc.2", or ""
     CACHE STRING "" FORCE)
-if (DEFINED ENV{PROJECT_VERSION_BUILD_META})
-    set(PROJECT_VERSION_BUILD_META $ENV{PROJECT_VERSION_BUILD_META}
-        CACHE STRING "" FORCE)
-endif()
+
+include(semver_meta)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "Predefined Targets")
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # The date library needs help with detecting compilers supporting
 # uncaught_exceptions (plural); the test for __cplusplus greater than

@@ -1,6 +1,6 @@
 def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON'
 def builds = [
-    [name: 'Release',  args: cmakeOpts, type: 'release'],
+    [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
     [name: 'Debug',  args: cmakeOpts, type: 'debug'],
 ]
 
@@ -155,11 +155,43 @@ def createJob(Map platform, Map build, Map conan) {
         }
     }
 }
+properties([
+    parameters([
+        booleanParam(name: 'MAKE_A_RELEASE_BUILD', defaultValue: false,
+            description: '''When turned on, will:
+  a. change the build name from "#123" to "v2.71 [123]";
+  b. generate a build with no SemVer build metadata;
+  c. run only Release jobs (no Debug artifacts).
 
-stage('SemVer+meta') {
-    node("linux") {
-        script {
-            env.PROJECT_VERSION_BUILD_META = sh(script:"date ++dev.%m%d%H%M%S", returnStdout: true).trim()
+When turned off, will
+  a. generate a build with +dev.mmddHHMMSS metadata''')
+    ])
+])
+
+if (params.MAKE_A_RELEASE_BUILD) {
+    stage('SemVer (Release)') {
+        node("linux") {
+            script {
+                checkout scm
+                sh "git fetch --tags"
+
+                env.PROJECT_VERSION_BUILD_RELEASE = sh(script:"date +%Y%m%d", returnStdout: true).trim()
+                String TAG = sh(script: "git describe --always", returnStdout: true).trim()
+                String SHA = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                if (TAG == SHA || TAG.endsWith("-g$SHA"))
+                    TAG = "git:$TAG"
+                else if (TAG.take(1) != 'v')
+                    TAG = "v$TAG"
+                currentBuild.displayName = "$TAG [$currentBuild.number]"
+            }
+        }
+    }
+} else {
+    stage('SemVer+meta') {
+        node("linux") {
+            script {
+                env.PROJECT_VERSION_BUILD_META = sh(script:"date ++dev.%m%d%H%M%S", returnStdout: true).trim()
+            }
         }
     }
 }
@@ -170,7 +202,10 @@ stage('Build') {
         for(build in builds) {
             if (build.containsKey('filter') && !(platform.node in build.filter))
                 continue
-            tasks["${build.name}/${platform.name}"] = createJob(platform, build, conan)
+            def releaseable = build.releaseable ?: false
+            if (!params.MAKE_A_RELEASE_BUILD || releaseable) {
+                tasks["${build.name}/${platform.name}"] = createJob(platform, build, conan)
+            }
         }
     }
 
