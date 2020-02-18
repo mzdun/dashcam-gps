@@ -1,4 +1,5 @@
 def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON'
+def cmakeOpts_rel = ' -DMGPS_PACK_COMPONENTS=OFF'
 def builds = [
     [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
     [name: 'Debug',  args: cmakeOpts, type: 'debug'],
@@ -204,7 +205,10 @@ stage('Build') {
                 continue
             def releaseable = build.releaseable ?: false
             if (!params.MAKE_A_RELEASE_BUILD || releaseable) {
-                tasks["${build.name}/${platform.name}"] = createJob(platform, build, conan)
+                def build_opts = build
+                if (params.MAKE_A_RELEASE_BUILD)
+                    build_opts = build + [args: build.args + cmakeOpts_rel]
+                tasks["${build.name}/${platform.name}"] = createJob(platform, build_opts, conan)
             }
         }
     }
