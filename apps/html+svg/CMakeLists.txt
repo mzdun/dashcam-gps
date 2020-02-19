@@ -1,7 +1,7 @@
 include(warnings)
 
 add_executable(html+svg main.cc svg.cc svg.hh debug.cc debug.hh)
-target_link_libraries(html+svg PRIVATE mgps)
+target_link_libraries(html+svg PRIVATE mgps CONAN_PKG::fmt)
 set_target_properties(html+svg PROPERTIES FOLDER ${FOLDER_APPS})
 
 install(TARGETS html+svg COMPONENT tools)

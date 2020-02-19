@@ -50,11 +50,11 @@ Map win32 = [
     builds: [
         release: windows.builds.release + [
             arch: 'Win32',
-            conan: windows.builds.release.conan + [ arch_target: 'x86' ]
+            conan: windows.builds.release.conan + [ arch_target: 'x86', arch: 'x86' ]
         ],
         debug: windows.builds.debug + [
             arch: 'Win32',
-            conan: windows.builds.debug.conan + [ arch_target: 'x86' ]
+            conan: windows.builds.debug.conan + [ arch_target: 'x86', arch: 'x86' ]
         ]
     ]
 ]

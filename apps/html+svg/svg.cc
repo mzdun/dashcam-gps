@@ -1,5 +1,7 @@
 #include "svg.hh"
 
+#include <fmt/ostream.h>
+
 #include <cctype>
 #include <cinttypes>
 #include <filesystem>
@@ -14,37 +16,64 @@
 
 namespace fs = std::filesystem;
 
-std::ostream& operator<<(std::ostream& out, mgps::clip clip_type) {
-	using namespace mgps;
-	out << "<span class=\"clip-type\"";
-	switch (clip_type) {
-		case clip::emergency:
-			out << " title=\"Emergency\"";
-			break;
-		case clip::parking:
-			out << " title=\"Parking incident\"";
-			break;
-		default:
-			break;
-	}
-	out << ">&#x1F3AC";
-	if (clip_type != clip::normal) {
-		out << "<span class=\"overlay\">";
-		switch (clip_type) {
-			case clip::emergency:
-				out << "&#x1F198;";
-				break;
-			case clip::parking:
-				out << "&#x1F17F;&#xFE0F;";
-				break;
-			default:
-				out << "&#x1F615;";
-				break;
+struct relative {
+	std::string const& filename;
+	std::filesystem::path* pcwd{};
+};
+
+namespace fmt {
+	template <>
+	struct formatter<relative> : formatter<string_view> {
+		template <typename FormatContext>
+		auto format(relative const& rel, FormatContext& ctx) {
+			if (rel.pcwd) {
+				std::error_code ec{};
+				auto r = fs::proximate(rel.filename, *rel.pcwd, ec);
+				if (!ec) {
+					return formatter<string_view>::format(r.string(), ctx);
+				}
+			}
+			return formatter<string_view>::format(rel.filename, ctx);
 		}
-		out << "</span>";  // overlay
-	}
-	return out << "</span>";  // clip-type
-}
+	};
+
+	template <>
+	struct formatter<mgps::clip> : formatter<string_view> {
+		template <typename FormatContext>
+		auto format(mgps::clip clip_type, FormatContext& ctx) {
+			using namespace mgps;
+			std::string out = "<span class=\"clip-type\"";
+			switch (clip_type) {
+				case clip::emergency:
+					out += " title=\"Emergency\"";
+					break;
+				case clip::parking:
+					out += " title=\"Parking incident\"";
+					break;
+				default:
+					break;
+			}
+			out += ">&#x1F3AC";
+			if (clip_type != clip::normal) {
+				out += "<span class=\"overlay\">";
+				switch (clip_type) {
+					case clip::emergency:
+						out += "&#x1F198;";
+						break;
+					case clip::parking:
+						out += "&#x1F17F;&#xFE0F;";
+						break;
+					default:
+						out += "&#x1F615;";
+						break;
+				}
+				out += "</span>";  // overlay
+			}
+			out += "</span>";  // clip-type
+			return formatter<string_view>::format(out, ctx);
+		}
+	};
+}  // namespace fmt
 
 namespace mgps::svg {
 	using hourf = ch::duration<double, ch::hours::period>;
@@ -139,15 +168,11 @@ namespace mgps::svg {
 		auto const cm = scale * 2 / 300;
 		auto const height = bounds.height() * scale;
 		auto const width = bounds.width() * scale;
-		out << R"(<div class="route">
-<svg width=")"
-		    << width / cm << R"(cm" height=")" << height / cm
-		    << R"(cm" viewBox=" 0 0 )" << width << " " << height
-		    << R"(" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;stroke-linejoin:round;stroke-linecap:round;fill:none">
-<rect x="0" y="0" width=")"
-		    << width << R"(" height=")" << height
-		    << R"(" rx="600" style="fill:#FEF7E0;stroke:none"/>
-)";
+		fmt::print(out, R"(<div class="route">
+<svg width="{0}cm" height="{1}cm" viewBox=" 0 0 {2} {3}" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;stroke-linejoin:round;stroke-linecap:round;fill:none">
+<rect x="0" y="0" width="{2}" height="{3}" rx="600" style="fill:#FEF7E0;stroke:none"/>
+)",
+		           width / cm, height / cm, width, height);
 		for (auto& line : trace.lines) {
 			bool first_point = true;
 			out << R"(<path style="stroke:white;stroke-width:180" d=")";
@@ -166,19 +191,20 @@ namespace mgps::svg {
 )";
 			if (!line.points.empty()) {
 				auto const& pt = camera.project(line.points.front());
-				out << R"(<circle style="stroke:white;stroke-width:180" cx=")"
-				    << (pt.x - bounds.topLeft.x) * scale << R"(" cy=")"
-				    << height - (pt.y - bounds.bottomRight.y) * scale
-				    << R"(" r="40" />
-)";
+				fmt::print(
+				    out,
+				    R"(<circle style="stroke:white;stroke-width:180" cx="{}" cy="{}" r="40" />
+)",
+				    (pt.x - bounds.topLeft.x) * scale,
+				    height - (pt.y - bounds.bottomRight.y) * scale);
 			}
 		}
 
 		for (auto& line : trace.lines) {
 			auto const distance = double(track::distance(&line)) / 1000.0;
-			out << "<g>\n";
 			bool first_point = true;
-			out << R"(<path d=")";
+			out << R"(<g>
+<path d=")";
 			for (auto const& gps : line.points) {
 				auto const pt = camera.project(gps);
 				if (first_point) {
@@ -190,19 +216,20 @@ namespace mgps::svg {
 				out << (pt.x - bounds.topLeft.x) * scale << ' '
 				    << height - (pt.y - bounds.bottomRight.y) * scale << ' ';
 			}
-			out << R"(" >
-<title>)" << distance
-			    << " km, " << line.duration << " ("
-			    << int(distance / hourf{line.duration}.count() + .5)
-			    << R"( km/h avg)</title>
-</path>)";
+			fmt::print(out, R"(" >
+<title>{} km, {} ({} km/h avg)</title>
+</path>)",
+			           distance, dur{line.duration},
+			           int(distance / hourf{line.duration}.count() + .5));
+
 			if (!line.points.empty()) {
 				auto const& pt = camera.project(line.points.front());
-				out << R"(<circle style="stroke-width:60" cx=")"
-				    << (pt.x - bounds.topLeft.x) * scale << R"(" cy=")"
-				    << height - (pt.y - bounds.bottomRight.y) * scale
-				    << R"(" r="40" />
-)";
+				fmt::print(
+				    out,
+				    R"(<circle style="stroke-width:60" cx="{}" cy="{}" r="40" />
+)",
+				    (pt.x - bounds.topLeft.x) * scale,
+				    height - (pt.y - bounds.bottomRight.y) * scale);
 			}
 			out << "</g>\n";
 		}
@@ -225,30 +252,35 @@ namespace mgps::svg {
 		auto const start_hour =
 		    trip.start - date::floor<date::days>(trip.start);
 
-		out << R"(
-<h2>)" << date::floor<ch::minutes>(start_hour)
-		    << R"(</h2>
+		fmt::print(out, R"(
+<h2>{}</h2>
 
-)";
+)",
+		           dur{date::floor<ch::minutes>(start_hour)});
+
 		svg_trace(out, trip.trace);
 
-		out << R"(
+		fmt::print(out, R"(
 
 <h3>Information</h3>
 
 <table class="info">
-<tr><th>Duration:</th><td>)"
-		    << date::floor<ch::seconds>(trip.playlist.duration)
-		    << "</td></tr>\n<tr><th>Playlist:</th><td>"
-		    << pl{trip.playlist.media.size(), "clip"}
-		    << "</td></tr>\n<tr><th>Plot:</tthd><td>"
-		    << pl{trip.trace.lines.size(), "line"} << " with "
-		    << pl{gpses, "point"} << "</td></tr>\n<tr><th>Distance:</th><td>"
-		    << double(dist) / 1000.0 << " km";
-		if (driven.count())
-			out << "</td></tr>\n<tr><th>Average speed:</th><td>"
-			    << int((double(dist) / 1000.0) / hourf{driven}.count() + 0.5)
-			    << " km/h";
+<tr><th>Duration:</th><td>{0}</td></tr>
+<tr><th>Playlist:</th><td>{1}</td></tr>
+<tr><th>Plot:</th><td>{2} with {3}</td></tr>
+<tr><th>Distance:</th><td>{4} km)",
+		           dur{date::floor<ch::seconds>(trip.playlist.duration)},
+		           pl{trip.playlist.media.size(), "clip"},
+		           pl{trip.trace.lines.size(), "line"}, pl{gpses, "point"},
+		           double(dist) / 1000.0);
+
+		if (driven.count()) {
+			fmt::print(
+			    out, R"(</td></tr>
+<tr><th>Average speed:</th><td>{} km/h)",
+			    int((double(dist) / 1000.0) / hourf{driven}.count() + 0.5));
+		}
+
 		out << R"(</td></tr>
 </table>
 
@@ -270,29 +302,25 @@ namespace mgps::svg {
 
 		std::error_code ec{};
 		auto cwd = fs::current_path(ec);
-		auto can_use_proximate = !ec;
+		auto pcwd = !ec ? &cwd : nullptr;
 
+		constexpr char format[] =
+		    "<tr><td class=\"num\">{}</td><td class=\"num\">{}</td><td>";
 		for (auto& clip : trip.playlist.media) {
-			out << "<tr><td class=\"num\">";
-			if (has_millis_in_offset)
-				out << clip.offset.time_since_epoch();
-			else
-				out << date::floor<ch::seconds>(clip.offset).time_since_epoch();
-			out << "</td><td class=\"num\">" << clip.duration << "</td><td>";
+			if (has_millis_in_offset) {
+				fmt::print(out, format, dur{clip.offset.time_since_epoch()},
+				           dur{clip.duration});
+			} else {
+				fmt::print(out, format,
+				           dur{date::floor<ch::seconds>(clip.offset)
+				                   .time_since_epoch()},
+				           dur{clip.duration});
+			}
 
 			auto file = footage(&trip, clip);
 			if (file) {
-				out << R"(<a target="player-page" href=")";
-				bool printed_proximate = false;
-				if (can_use_proximate) {
-					auto relative = fs::proximate(file->filename, cwd, ec);
-					if (!ec) {
-						out << relative.string();
-						printed_proximate = true;
-					}
-				}
-				if (!printed_proximate) out << file->filename;
-				out << R"(">)" << file->type << "</a>";
+				fmt::print(out, R"(<a target="player-page" href="{}">{}</a>)",
+				           relative{file->filename, pcwd}, file->type);
 			} else {
 				out << "&#x2049;&#xFE0F;";
 			}
@@ -419,57 +447,60 @@ a { text-decoration: none }
 
 			if (date != prev_date) {
 				prev_date = date;
-				out << "<h1>" << date << "</h1>\n";
+				fmt::print(out, "<h1>{}</h1>\n", date);
 			}
 			trace_trip(out, trip);
 		}
-		out << R"(
-<div class='versions'>Generated using <span class='module'>mGPS <small>()"
-		    << get_version().str.ui << ")</small></span>";
+		fmt::print(out, R"(
+<div class='versions'>Generated using <span class='module'>mGPS<small> ({})</small></span>)",
+		           get_version().str.ui);
 		auto& plugins = lib.plugins();
 		if (!plugins.empty()) {
 			if (plugins.size() == 1) {
-				out << ", with help from ";
-
 				auto& ptr = plugins.front();
-
 				auto& info = ptr->info();
 
+				auto const name = info.name.empty()
+				                      ? "[unknown]"
+				                      : fmt::format("{}", xmlize{info.name});
+				std::string version{}, descr{};
+				if (!info.version.empty()) {
+					version = fmt::format(R"(<small> ({})</small>)",
+					                      xmlize{info.version});
+				}
 
-				out << "<span class='module'";
-				if (!info.description.empty())
-					out << " title=\"" << xmlize{info.description}
-					    << "\"";
-				out << '>';
-				if (info.name.empty())
-					out << "[unknown]";
-				else
-					out << xmlize{info.name};
-				if (!info.version.empty())
-					out << " <small>(" << xmlize{info.version} << ")</small>";
-				out << "</span>";
+				if (!info.description.empty()) {
+					descr =
+					    fmt::format(R"( title="{}")", xmlize{info.description});
+				}
 
-				out << ".";
+				fmt::print(
+				    out, ", with help from <span class='module'{}>{}{}</span>.",
+				    descr, name, version);
 			} else {
 				out << ", with help from:\n<ul>";
 
 				for (auto& ptr : plugins) {
-					out << "\n    <li><span class='module'>";
 					auto& info = ptr->info();
-					if (info.name.empty())
-						out << "[unknown]";
-					else
-						out << xmlize{info.name};
-					if (!info.version.empty())
-						out << " <small>(" << xmlize{info.version}
-						    << ")</small>";
-					out << "</span>";
 
-					if (!info.description.empty())
-						out << "<br/><i><small>" << xmlize{info.description}
-						    << "</small></i>";
+					auto const name =
+					    info.name.empty()
+					        ? "[unknown]"
+					        : fmt::format("{}", xmlize{info.name});
+					std::string version{}, descr{};
+					if (!info.version.empty()) {
+						version = fmt::format(R"(<small> ({})</small>)",
+						                      xmlize{info.version});
+					}
 
-					out << "</li>";
+					if (!info.description.empty()) {
+						descr = fmt::format("<br/><i><small>{}</small></i>",
+						                    xmlize{info.description});
+					}
+
+					fmt::print(out, R"(
+    <li><span class='module'>{}{}</span>{}</li>)",
+					           name, version, descr);
 				}
 
 				out << "\n</ul>\n";

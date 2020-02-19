@@ -1,6 +1,7 @@
 [requires]
 date/2.4.1
 CTRE/v2.7@ctre/stable
+fmt/6.1.2
 
 [generators]
 cmake
