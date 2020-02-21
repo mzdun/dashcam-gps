@@ -1,4 +1,4 @@
-def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON'
+def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON -DMGPS_BUILD_TESTS=ON'
 def cmakeOpts_rel = ' -DMGPS_PACK_COMPONENTS=OFF'
 def builds = [
     [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
@@ -7,6 +7,7 @@ def builds = [
 
 Map posix = [
     call: { String script, String label -> sh script:script, label:label },
+    callNoCheck: { String script, String label -> sh script:script, label:label, returnStatus:true },
     env: { sh "printenv" },
     builds: [
         release: [ build: 'Release', generator: 'Ninja', packer: 'TGZ',
@@ -24,6 +25,7 @@ Map posix = [
 
 Map windows = [
     call: { String script, String label -> bat script:"@${script}", label:label },
+    callNoCheck: { String script, String label -> bat script:"@${script}", label:label, returnStatus:true },
     env: { bat "set" },
     builds: [
         release: [
@@ -31,14 +33,16 @@ Map windows = [
             steps: [
                 [ args: '-nologo -m -v:m -p:Configuration=Release' ]
             ],
-            conan: [ 'compiler.runtime': 'MD' ]
+            conan: [ 'compiler.runtime': 'MD' ],
+            test_config: 'Release'
         ],
         debug: [
             packer: 'ZIP',
             steps: [
                 [ args: '-nologo -m -v:m -p:Configuration=Debug' ]
             ],
-            conan: [ 'compiler.runtime': 'MDd' ]
+            conan: [ 'compiler.runtime': 'MDd' ],
+            test_config: 'Debug'
         ]
     ]
 ]
@@ -46,6 +50,7 @@ Map windows = [
 Map win32 = [
     call: windows.call,
     env: windows.env,
+    callNoCheck: windows.callNoCheck,
     arch: 'x86',
     builds: [
         release: windows.builds.release + [
@@ -127,12 +132,20 @@ def createCMakeBuild(Map conan, Map os, Map task) {
     }
 
     os.call("cpack -G ${type.packer}")
+
+    String test_config = type.test_config ?: type.build
+    if (test_config != null)
+        test_config = " -C $test_config"
+    else
+        test_config = ''
+    
+    os.callNoCheck("ctest$test_config --output-on-failure")
 }
 
 def createJob(Map platform, Map build, Map conan) {
     Map os = platform.os
     String nodeLabel = platform.node
-    String stageName = "${build.name} (${platform.name})"
+    String stageName = "${build.name}/${platform.name}"
     String arch = os.arch ?: 'x86_64'
     return {
         stage("${stageName}") {
@@ -151,6 +164,7 @@ def createJob(Map platform, Map build, Map conan) {
                     }
                 }
 
+                junit "build/${build.type}/testing-results/*.xml"
                 archiveArtifacts "build/${build.type}/dashcam-gps-*"
             }
         }
