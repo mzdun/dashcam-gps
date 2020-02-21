@@ -197,8 +197,12 @@ namespace mgps::plugin::isom::mai {
 		auto const D = static_cast<int>(uD);
 		auto const date = Y / M / D;
 		if (!date.ok() || h > 23 || m > 59 || s > 59) return {};
-		auto const ts = local_days{date} + hours{h} + minutes{m} + seconds{s};
-		return {clip_type, ts};
+		using re_days = local_time<
+		    ch::duration<ch::milliseconds::rep, date::days::period> >;
+		auto const local_date = re_days{local_days{date}.time_since_epoch()};
+		auto const time_of_day = hours{h} + minutes{m} + seconds{s};
+
+		return {clip_type, local_date + time_of_day};
 	}
 
 	bool read_GPS_box(storage& full,
