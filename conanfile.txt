@@ -1,7 +1,11 @@
 [requires]
 date/2.4.1
 CTRE/v2.7@ctre/stable
+gtest/1.10.0
 fmt/6.1.2
+
+[options]
+gtest:build_gmock=False
 
 [generators]
 cmake
