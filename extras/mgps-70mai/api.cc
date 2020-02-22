@@ -35,11 +35,21 @@ namespace mgps::plugin::mai::api {
 	bool load(char const* filename, mgps::plugin::file_info* out) {
 		if (!out) return false;
 
-		using namespace isom;
 		using namespace isom::mai;
 
 		auto const info = get_filename_info(filename);
 		if (info.type == clip::unrecognized) return false;
+		return load(filename, info.type, info.ts.time_since_epoch(), out);
+	}
+
+	bool load(char const* filename,
+	          clip force_type,
+	          std::chrono::milliseconds force_ts,
+	          file_info* out) {
+		if (!out) return false;
+
+		using namespace isom;
+		using namespace isom::mai;
 
 		auto bits = cstdio::open(filename);
 		if ((!bits.valid()) || (!bits.is_isom())) return false;
@@ -56,9 +66,9 @@ namespace mgps::plugin::mai::api {
 		auto const new_size = static_cast<size_t>(
 		    std::distance(std::begin(data.points), new_end));
 
-		out->set_clip(info.type);
+		out->set_clip(force_type);
 		out->set_filename(filename);
-		out->set_timestamp(info.ts.time_since_epoch());
+		out->set_timestamp(force_ts);
 		out->set_duration(data.duration);
 
 		out->before_points(new_size);

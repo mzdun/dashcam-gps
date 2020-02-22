@@ -32,6 +32,14 @@ set_target_properties(mgps-plugin-70mai PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     PREFIX "")
 
+if (MGPS_BUILD_FUZZ)
+    add_executable(fuzzer-70mai-boxes fuzzer/boxes.cc)
+    target_include_directories(fuzzer-70mai-boxes PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(fuzzer-70mai-boxes PRIVATE 70mai CONAN_PKG::CTRE)
+    set_target_properties(fuzzer-70mai-boxes PROPERTIES
+        FOLDER ${FOLDER_EXTRAS})
+endif()
+
 set_plugin_output_directories(mgps-plugin-70mai)
 
 if (NOT MSVC)
