@@ -95,7 +95,10 @@ namespace mgps::plugin::isom {
 		}
 
 		auto const offset = bits.tell();
+
+		auto const curr_box_at = next_box_at_;
 		next_box_at_ = offset + size - 8;
+		if (next_box_at_ <= curr_box_at) return false;
 
 		box_ = box_info{offset + bits.offset(), size - 8, tag};
 		return true;

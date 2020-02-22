@@ -53,8 +53,7 @@ namespace mgps::plugin::isom::mai {
 					break;
 			}
 			using Int = std::underlying_type_t<track::NESW>;
-			return static_cast<track::NESW>(
-			    std::numeric_limits<Int>::max());
+			return static_cast<track::NESW>(std::numeric_limits<Int>::max());
 		}
 
 		track::coordinate make_coord(uint32_t deg_min_1000, char direction) {
@@ -72,7 +71,9 @@ namespace mgps::plugin::isom::mai {
 			~seek_to() { stg.seek(pos); }
 		};
 
-		bool next_point(storage& data, gps_point& pt) {
+		bool next_point(storage& data,
+		                gps_point& pt,
+		                std::chrono::seconds expected) {
 			seek_to end{data.tell() + 36, data};
 
 			if (data.eof()) return false;
@@ -86,7 +87,7 @@ namespace mgps::plugin::isom::mai {
 			if (data.eof()) return false;
 			auto const seconds = std::chrono::seconds{data.get<uint32_t>()};
 
-			if (!has_gps) {
+			if (!has_gps || seconds != expected) {
 				pt = gps_point{};
 				return true;
 			}
@@ -212,7 +213,10 @@ namespace mgps::plugin::isom::mai {
 		if (box.type != GPS_box) return false;
 
 		range_storage bits{&full, box};
-		while (next_point(bits, points.back())) {
+		std::chrono::seconds expected{};
+		while (next_point(bits, points.back(), expected)) {
+			++expected;
+
 			if (!points.back().valid) continue;
 			points.push_back({});
 		}

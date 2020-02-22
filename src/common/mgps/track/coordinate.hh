@@ -59,6 +59,8 @@ namespace mgps::track {
 				case NESW::W:
 					if (degrees() > 180) return false;
 					break;
+				default:
+					return false;
 			}
 			return minutes() < 60;
 		}

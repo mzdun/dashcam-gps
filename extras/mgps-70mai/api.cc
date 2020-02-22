@@ -8,7 +8,8 @@ namespace fs = std::filesystem;
 namespace mgps::plugin::mai::api {
 	namespace {
 		struct file_reader_data {
-			std::chrono::milliseconds duration;
+			std::chrono::milliseconds duration{
+			    std::chrono::milliseconds::max()};
 			std::vector<isom::mai::gps_point> points;
 		};
 
@@ -58,6 +59,10 @@ namespace mgps::plugin::mai::api {
 
 		auto const size = bits.seek_end();
 		if (!read_box<file_reader>(bits, {0u, size, box_type::UNKNOWN}, data))
+			return false;
+
+		if (data.duration <= std::chrono::milliseconds::zero() ||
+		    data.duration == std::chrono::milliseconds::max())
 			return false;
 
 		auto new_end =
