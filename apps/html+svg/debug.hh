@@ -10,7 +10,6 @@ std::string date_time_from(mgps::local_ms time);
 std::string duration_from(std::chrono::milliseconds time);
 std::string duration_from(std::chrono::seconds time);
 std::string duration_from(std::chrono::minutes time);
-std::string coord_from(mgps::track::coordinate const& pos);
 
 template <typename Counter>
 struct pl {
@@ -56,15 +55,6 @@ namespace fmt {
 		template <typename FormatContext>
 		auto format(date_time<Duration> const& val, FormatContext& ctx) {
 			auto s = date_time_from(val.time);
-			return formatter<string_view>::format(s, ctx);
-		}
-	};
-
-	template <>
-	struct formatter<mgps::track::coordinate> : formatter<string_view> {
-		template <typename FormatContext>
-		auto format(mgps::track::coordinate const& val, FormatContext& ctx) {
-			auto s = coord_from(val);
 			return formatter<string_view>::format(s, ctx);
 		}
 	};

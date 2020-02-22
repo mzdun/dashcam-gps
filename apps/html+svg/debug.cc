@@ -30,83 +30,66 @@ std::string date_time_from(mgps::local_ms time) {
 	    static_cast<unsigned>(hms.subseconds().count()));
 }
 
+auto subseconds(date::hh_mm_ss<std::chrono::seconds>) {
+	return std::chrono::seconds{0};
+}
+
+auto subseconds(date::hh_mm_ss<std::chrono::milliseconds> hmss) {
+	return hmss.subseconds();
+}
+
+template <typename Duration>
+class duration_from_impl {
+public:
+	duration_from_impl(Duration dur) : is_undefined_{dur == max_}, hms_{dur} {}
+
+	std::string format(std::string_view const (&formats)[3]) const {
+		if (is_undefined_) return "Unknown";
+		return fmt::format(formats[ndx_], hms_.is_negative() ? "-" : "",
+		                   d_.count(), (hms_.hours() - d_).count(),
+		                   hms_.minutes().count(), hms_.seconds().count(),
+		                   subseconds(hms_).count());
+	}
+
+private:
+	static constexpr Duration max_ =
+	    std::chrono::duration_cast<Duration>(std::chrono::milliseconds::max());
+	bool is_undefined_;
+	date::hh_mm_ss<Duration> hms_;
+	date::days d_{date::floor<date::days>(hms_.hours())};
+	size_t ndx_ = hms_.hours() == std::chrono::hours{0}
+	                  ? 0
+	                  : hms_.hours() < date::days{1} ? 1 : 2;
+};
+
 std::string duration_from(std::chrono::milliseconds time) {
-	using namespace std::chrono;
-	using namespace date;
+	using namespace std::literals;
 
-	if (time == milliseconds::max()) return "Unknown";
+	static constexpr std::string_view formats[] = {
+	    "{0}{3:02}:{4:02}.{5:03}"sv, "{0}{2:02}:{3:02}:{4:02}.{5:03}"sv,
+	    "{0}{1} days, {2:02}:{3:02}:{4:02}.{5:03}"sv};
 
-	auto ms = time;
-	auto const h = floor<hours>(ms);
-	auto const m = floor<minutes>(ms) - h;
-	auto const s = floor<seconds>(ms) - m - h;
-	ms -= (s + m + h);
-
-	if (h == hours{0}) {
-		return fmt::format("{:02}:{:02}.{:03}",
-		                   static_cast<unsigned>(m.count()),
-		                   static_cast<unsigned>(s.count()),
-		                   static_cast<unsigned>(ms.count()));
-	}
-
-	if (h < days{1}) {
-		return fmt::format(
-		    "{:02}:{:02}:{:02}.{:03}", static_cast<unsigned>(h.count()),
-		    static_cast<unsigned>(m.count()), static_cast<unsigned>(s.count()),
-		    static_cast<unsigned>(ms.count()));
-	}
-
-	auto const d = floor<days>(h);
-
-	return fmt::format(
-	    "{} days, {:02}:{:02}:{:02}.{:03}", static_cast<unsigned>(d.count()),
-	    static_cast<unsigned>((h - d).count()),
-	    static_cast<unsigned>(m.count()), static_cast<unsigned>(s.count()),
-	    static_cast<unsigned>(ms.count()));
+	return duration_from_impl{time}.format(formats);
 }
 
 std::string duration_from(std::chrono::seconds time) {
-	using namespace std::chrono;
-	using namespace date;
+	using namespace std::literals;
 
-	if (time == duration_cast<seconds>(milliseconds::max())) return "Unknown";
+	static constexpr std::string_view formats[] = {
+	    "{0}{3:02}:{4:02}"sv, "{0}{2:02}:{3:02}:{4:02}"sv,
+	    "{0}{1} days, {2:02}:{3:02}:{4:02}"sv};
 
-	auto s = time;
-	auto const h = floor<hours>(s);
-	auto const m = floor<minutes>(s) - h;
-	s -= (m + h);
-
-	if (h == hours{0}) {
-		return fmt::format("{:02}:{:02}", static_cast<unsigned>(m.count()),
-		                   static_cast<unsigned>(s.count()));
-	}
-
-	if (h < days{1}) {
-		return fmt::format(
-		    "{:02}:{:02}:{:02}", static_cast<unsigned>(h.count()),
-		    static_cast<unsigned>(m.count()), static_cast<unsigned>(s.count()));
-	}
-
-	auto const d = floor<days>(h);
-
-	return fmt::format(
-	    "{} days, {:02}:{:02}:{:02}", static_cast<unsigned>(d.count()),
-	    static_cast<unsigned>((h - d).count()),
-	    static_cast<unsigned>(m.count()), static_cast<unsigned>(s.count()));
+	return duration_from_impl{time}.format(formats);
 }
 
 std::string duration_from(std::chrono::minutes time) {
 	using namespace std::chrono;
 	using namespace date;
 
+	if (time == duration_cast<minutes>(milliseconds::max())) return "Unknown";
+
 	auto const hms = hh_mm_ss{time};
 
-	return fmt::format("{:02}:{:02}",
-	                   static_cast<unsigned>(hms.hours().count()),
-	                   static_cast<unsigned>(hms.minutes().count()));
-}
-
-std::string coord_from(mgps::track::coordinate const& pos) {
-	return fmt::format("{}*{:02}.{:03}{}", pos.degrees(), pos.minutes(),
-	                   pos.thousandths_of_a_minute(), to_char(pos.direction));
+	return fmt::format("{}{:02}:{:02}", hms.is_negative() ? "-" : "",
+	                   hms.hours().count(), hms.minutes().count());
 }
