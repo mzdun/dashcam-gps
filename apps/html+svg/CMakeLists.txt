@@ -12,6 +12,9 @@ if (MGPS_BUILD_TESTS)
     target_link_libraries(html+svg-tests PRIVATE mgps-common CONAN_PKG::fmt CONAN_PKG::gtest)
     set_target_properties(html+svg-tests PROPERTIES FOLDER ${FOLDER_APPS})
 
-    add_test(NAME html+svg WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND bin/html+svg-tests --gtest_output=xml:testing-results/html+svg-tests.xml)
+    if (NOT DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE} OR DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE_TESTS})
+        install(TARGETS html+svg-tests COMPONENT tests)
+    endif()
 
+    add_test(NAME html+svg WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND bin/html+svg-tests --gtest_output=xml:testing-results/html+svg-tests.xml)
 endif()

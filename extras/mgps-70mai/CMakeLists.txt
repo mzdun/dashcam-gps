@@ -38,6 +38,11 @@ if (MGPS_BUILD_FUZZ)
     target_link_libraries(fuzzer-70mai-boxes PRIVATE 70mai CONAN_PKG::CTRE)
     set_target_properties(fuzzer-70mai-boxes PROPERTIES
         FOLDER ${FOLDER_EXTRAS})
+    install(TARGETS fuzzer-70mai-boxes COMPONENT fuzzer)
+    install(DIRECTORY fuzzer/boxes-in/
+        COMPONENT fuzzer
+        DESTINATION share/mgps/fuzzer/boxes-in/
+    )
 endif()
 
 set_plugin_output_directories(mgps-plugin-70mai)
@@ -63,6 +68,9 @@ if (MGPS_BUILD_TESTS)
     set_target_properties(70mai-tests PROPERTIES
         FOLDER ${FOLDER_EXTRAS})
 
-    add_test(NAME 70mai WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND bin/70mai-tests --gtest_output=xml:testing-results/70mai-tests.xml)
+    if (NOT DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE} OR DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE_TESTS})
+        install(TARGETS 70mai-tests COMPONENT tests)
+    endif()
 
+    add_test(NAME 70mai WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND bin/70mai-tests --gtest_output=xml:testing-results/70mai-tests.xml)
 endif()

@@ -3,6 +3,9 @@ def cmakeOpts_rel = ' -DMGPS_PACK_COMPONENTS=OFF'
 def builds = [
     [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
     [name: 'Debug',  args: cmakeOpts, type: 'debug'],
+    [name: 'Fuzz-ready',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_FUZZ=ON', type: 'fuzzy', releaseable: true],
+    [name: 'Tests',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_TESTS=ON', type: 'tests', basedOn: 'release', releaseable: true,
+        allowNormalBuilds: false, environment: ["PROJECT_VERSION_BUILD_RELEASE_TESTS=1"]],
 ]
 
 Map posix = [
@@ -21,6 +24,16 @@ Map posix = [
             ]
         ]
     ]
+]
+
+Map linux = posix + [:]
+linux.builds = linux.builds + [
+    fuzzy: [ build: 'Release', generator: 'Ninja', packer: 'TGZ',
+            steps: [
+                [ args: 'all' ]
+            ],
+            environment: [ "CC=afl-gcc", "CXX=afl-g++" ]
+        ],
 ]
 
 Map windows = [
@@ -66,21 +79,23 @@ Map win32 = [
 
 Map conan = [
     release: [build_type: 'Release'],
+    fuzzy: [build_type: 'Release'],
     debug: [build_type: 'Debug']
 ]
 
 def platforms = [
-    [name: 'Linux', node: 'linux', os: posix ],
+    [name: 'Linux', node: 'linux', os: linux ],
     [name: 'Win64', node: 'windows', os: windows ],
     [name: 'Win32', node: 'windows', os: win32 ],
     [name: 'MacOS', node: 'mac', os: posix ]
 ]
 
 def createCMakeBuild(Map conan, Map os, Map task) {
-    if (!os.builds.containsKey(task.type))
-        return
-
     Map type = os.builds[task.type]
+    if (type == null && task.containsKey('basedOn'))
+        type = os.builds[task.basedOn]
+
+    List environment = (os.environment ?: []) + (type.environment ?: []) + (task.environment ?: [])
 
     String cmakeBinary = env.CMAKE_BINARY ?: "cmake"
     String conanBinary = env.CONAN_BINARY ?: "conan"
@@ -109,37 +124,37 @@ def createCMakeBuild(Map conan, Map os, Map task) {
     Map conanArgs = conan + (type.conan ?: [:])
     conanArgs.each { conanConfigure += " -s $it.key=$it.value" }
 
-    os.call("${conanBinary} install ../.. --build missing${conanConfigure}", 'Get dependencies')
-    os.call(cmakeConfigure, 'Generate build from CMake')
+    withEnv(environment) {
+        os.call("${conanBinary} install ../.. --build missing${conanConfigure}", 'Get dependencies')
+        os.call(cmakeConfigure, 'Generate build from CMake')
 
 
-    if (type.containsKey('steps')) {
-        String buildArgs = "${cmakeBinary} --build ."
-        for (step in type.steps) {
-            String stepArgs = "${buildArgs}"
-            if (step.containsKey('args')) {
-                stepArgs += ' -- '
-                stepArgs += step.args
-            }
-            if (step.containsKey('env')) {
-                withEnv(step.env) {
+        if (type.containsKey('steps')) {
+            String buildArgs = "${cmakeBinary} --build ."
+            for (step in type.steps) {
+                String stepArgs = "${buildArgs}"
+                if (step.containsKey('args')) {
+                    stepArgs += ' -- '
+                    stepArgs += step.args
+                }
+                withEnv(step.env ?: []) {
                     os.call(stepArgs, null)
                 }
-            } else {
-                os.call(stepArgs, null)
             }
         }
+
+        os.call("cpack -G ${type.packer}")
+
+        if (cmakeConfigure.contains(' -DMGPS_BUILD_TESTS=ON ')) {
+            String test_config = type.test_config ?: type.build
+            if (test_config != null)
+                test_config = " -C $test_config"
+            else
+                test_config = ''
+
+            os.callNoCheck("ctest$test_config --output-on-failure")
+        }
     }
-
-    os.call("cpack -G ${type.packer}")
-
-    String test_config = type.test_config ?: type.build
-    if (test_config != null)
-        test_config = " -C $test_config"
-    else
-        test_config = ''
-    
-    os.callNoCheck("ctest$test_config --output-on-failure")
 }
 
 def createJob(Map platform, Map build, Map conan) {
@@ -160,11 +175,17 @@ def createJob(Map platform, Map build, Map conan) {
                     }
 
                     withEnv(vars) {
-                        createCMakeBuild(conan[build.type] ?: [:], os, build)
+                        def conanCfg = conan[build.type]
+                            ?: (build.containsKey('basedOn') ? (conan[build.basedOn] ?: [:]) : [:])
+                        createCMakeBuild(conanCfg, os, build)
                     }
                 }
 
-                junit "build/${build.type}/testing-results/*.xml"
+                def config = " ${build.args} "
+                if (config.contains(' -DMGPS_BUILD_TESTS=ON ')) {
+                    junit "build/${build.type}/testing-results/*.xml"
+                }
+
                 archiveArtifacts "build/${build.type}/dashcam-gps-*"
             }
         }
@@ -215,13 +236,34 @@ stage('Build') {
     Map tasks = [:]
     for(platform in platforms) {
         for(build in builds) {
+            if (!platform.os.builds.containsKey(build.type)) {
+                if (!build.containsKey('basedOn')) {
+                    continue
+                }
+
+                if (!platform.os.builds.containsKey(build.basedOn)) {
+                    continue
+                }
+            }
             if (build.containsKey('filter') && !(platform.node in build.filter))
                 continue
-            def releaseable = build.releaseable ?: false
-            if (!params.MAKE_A_RELEASE_BUILD || releaseable) {
+
+            def releaseable = build.containsKey('releaseable') ? build.releaseable : false
+            def allowNormalBuilds = build.containsKey('allowNormalBuilds') ? build.allowNormalBuilds : true
+
+            def should_build = releaseable == allowNormalBuilds ? allowNormalBuilds : allowNormalBuilds != params.MAKE_A_RELEASE_BUILD
+
+            if (should_build) {
                 def build_opts = build
-                if (params.MAKE_A_RELEASE_BUILD)
-                    build_opts = build + [args: build.args + cmakeOpts_rel]
+                if (params.MAKE_A_RELEASE_BUILD) {
+                    def args = build.args + cmakeOpts_rel
+                    if (allowNormalBuilds) {
+                        // Remove the testing from Release, it will return in Tests
+                        args = " $args ".replaceAll(' -DMGPS_BUILD_TESTS=ON ', ' ')
+                        args = args[1..(args.size()-2)]
+                    }
+                    build_opts = build + [args: args]
+                }
                 tasks["${build.name}/${platform.name}"] = createJob(platform, build_opts, conan)
             }
         }
