@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(dashcam-gps
     DESCRIPTION "Library and player for movie clips with accompanying GPS info"
-    VERSION 0.4.2
+    VERSION 0.4.3
     LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
