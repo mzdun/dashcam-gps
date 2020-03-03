@@ -26,10 +26,13 @@ target_include_directories(mgps-common INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}" "
 target_link_libraries(mgps-common INTERFACE fs-polyfill CONAN_PKG::date)
 dir_filters(MGPS_COMMON_SOURCES)
 
-install(DIRECTORY mgps/
-    COMPONENT dev
-    DESTINATION include/mgps
-    FILES_MATCHING PATTERN "*.hh")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh
-    COMPONENT dev
-    DESTINATION include/mgps)
+# Test builds will need the mgps, but not mgps' install targets
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    install(DIRECTORY mgps/
+        COMPONENT dev
+        DESTINATION include/mgps
+        FILES_MATCHING PATTERN "*.hh")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/mgps/version.hh
+        COMPONENT dev
+        DESTINATION include/mgps)
+endif()

@@ -4,7 +4,7 @@ def builds = [
     [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
     [name: 'Debug',  args: cmakeOpts, type: 'debug'],
     [name: 'Fuzz-ready',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_FUZZ=ON', type: 'fuzzy', releaseable: true],
-    [name: 'Tests',  args: '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_TESTS=ON', type: 'tests', basedOn: 'release', releaseable: true,
+    [name: 'Tests',  args: cmakeOpts + ' -DMGPS_BUILD_TESTS=ON -DMGPS_BUILD_TESTS_ONLY=ON', type: 'tests', basedOn: 'release', releaseable: true,
         allowNormalBuilds: false, environment: ["PROJECT_VERSION_BUILD_RELEASE_TESTS=1"]],
 ]
 

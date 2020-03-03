@@ -57,14 +57,20 @@ set_target_properties(mgps PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
 
-install(TARGETS mgps 
-    ARCHIVE COMPONENT dev
-    OBJECTS COMPONENT dev
-    LIBRARY
-        COMPONENT library
-        NAMELINK_COMPONENT dev
-    RUNTIME COMPONENT library)
-install(DIRECTORY ./
-    COMPONENT dev
-    DESTINATION include/mgps
-    FILES_MATCHING PATTERN "*.hh")
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    install(TARGETS mgps 
+        ARCHIVE COMPONENT dev
+        OBJECTS COMPONENT dev
+        LIBRARY
+            COMPONENT library
+            NAMELINK_COMPONENT dev
+        RUNTIME COMPONENT library)
+    install(DIRECTORY ./
+        COMPONENT dev
+        DESTINATION include/mgps
+        FILES_MATCHING PATTERN "*.hh")
+else()
+    install(TARGETS mgps 
+        LIBRARY COMPONENT library
+        RUNTIME COMPONENT library)
+endif()

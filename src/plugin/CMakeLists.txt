@@ -20,8 +20,10 @@ if (NOT MSVC)
     target_compile_options(mgps-plugin PRIVATE -fvisibility=hidden)
 endif()
 
-install(TARGETS mgps-plugin COMPONENT dev)
-install(DIRECTORY mgps/
-    COMPONENT dev
-    DESTINATION include/mgps
-    FILES_MATCHING PATTERN "*.hh")
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    install(TARGETS mgps-plugin COMPONENT dev)
+    install(DIRECTORY mgps/
+        COMPONENT dev
+        DESTINATION include/mgps
+        FILES_MATCHING PATTERN "*.hh")
+endif()

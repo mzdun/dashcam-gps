@@ -26,25 +26,27 @@ if (WIN32)
         )
 endif()
 
-add_executable(qt5-player ${PLAYER_SRCS})
-set_target_properties(qt5-player PROPERTIES OUTPUT_NAME "${PROJECT_NAME}-player" FOLDER ${FOLDER_APPS})
-target_compile_definitions(qt5-player PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
-target_link_libraries(qt5-player PRIVATE Qt5::Core Qt5::Quick Qt5::Location Qt5::Positioning Qt5::Multimedia mgps)
-target_include_directories(qt5-player PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    add_executable(qt5-player ${PLAYER_SRCS})
+    set_target_properties(qt5-player PROPERTIES OUTPUT_NAME "${PROJECT_NAME}-player" FOLDER ${FOLDER_APPS})
+    target_compile_definitions(qt5-player PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
+    target_link_libraries(qt5-player PRIVATE Qt5::Core Qt5::Quick Qt5::Location Qt5::Positioning Qt5::Multimedia mgps)
+    target_include_directories(qt5-player PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-include(dir_filters)
-dir_filters(PLAYER_SRCS)
+    include(dir_filters)
+    dir_filters(PLAYER_SRCS)
 
-# set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-# include(InstallRequiredSystemLibraries)
+    # set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+    # include(InstallRequiredSystemLibraries)
 
-install(TARGETS qt5-player COMPONENT qt5)
-if (UNIX)
-    install(FILES dashcam-gps-player.desktop
-        DESTINATION share/applications
-        COMPONENT qt5)
-    install(FILES img/icon.png
-        DESTINATION share/icons/hicolor/256x256/apps
-        COMPONENT qt5
-        RENAME dashcam-gps-player.png)
+    install(TARGETS qt5-player COMPONENT qt5)
+    if (UNIX)
+        install(FILES dashcam-gps-player.desktop
+            DESTINATION share/applications
+            COMPONENT qt5)
+        install(FILES img/icon.png
+            DESTINATION share/icons/hicolor/256x256/apps
+            COMPONENT qt5
+            RENAME dashcam-gps-player.png)
+    endif()
 endif()

@@ -1,10 +1,12 @@
 include(warnings)
 
-add_executable(html+svg main.cc svg.cc svg.hh debug.cc debug.hh)
-target_link_libraries(html+svg PRIVATE mgps CONAN_PKG::fmt)
-set_target_properties(html+svg PROPERTIES FOLDER ${FOLDER_APPS})
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    add_executable(html+svg main.cc svg.cc svg.hh debug.cc debug.hh)
+    target_link_libraries(html+svg PRIVATE mgps CONAN_PKG::fmt)
+    set_target_properties(html+svg PROPERTIES FOLDER ${FOLDER_APPS})
 
-install(TARGETS html+svg COMPONENT tools)
+    install(TARGETS html+svg COMPONENT tools)
+endif()
 
 if (MGPS_BUILD_TESTS)
     add_executable(html+svg-tests debug.cc debug.hh debug_fmt_unittests.cc)

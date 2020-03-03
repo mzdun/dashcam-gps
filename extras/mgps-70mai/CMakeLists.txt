@@ -24,13 +24,15 @@ set_target_properties(70mai PROPERTIES
     FOLDER ${FOLDER_EXTRAS}
     POSITION_INDEPENDENT_CODE ON)
 
-add_library(mgps-plugin-70mai SHARED ${PLUGIN_SOURCES})
-target_compile_definitions(mgps-plugin-70mai PRIVATE IMPLEMENTING_PLUGIN)
-target_link_libraries(mgps-plugin-70mai PRIVATE 70mai)
-set_target_properties(mgps-plugin-70mai PROPERTIES
-    FOLDER ${FOLDER_EXTRAS}
-    POSITION_INDEPENDENT_CODE ON
-    PREFIX "")
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    add_library(mgps-plugin-70mai SHARED ${PLUGIN_SOURCES})
+    target_compile_definitions(mgps-plugin-70mai PRIVATE IMPLEMENTING_PLUGIN)
+    target_link_libraries(mgps-plugin-70mai PRIVATE 70mai)
+    set_target_properties(mgps-plugin-70mai PROPERTIES
+        FOLDER ${FOLDER_EXTRAS}
+        POSITION_INDEPENDENT_CODE ON
+        PREFIX "")
+endif()
 
 if (MGPS_BUILD_FUZZ)
     add_executable(fuzzer-70mai-boxes fuzzer/boxes.cc)
@@ -45,21 +47,27 @@ if (MGPS_BUILD_FUZZ)
     )
 endif()
 
-set_plugin_output_directories(mgps-plugin-70mai)
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    set_plugin_output_directories(mgps-plugin-70mai)
+endif()
 
 if (NOT MSVC)
     target_compile_options(70mai PRIVATE -fvisibility=hidden)
-    target_compile_options(mgps-plugin-70mai PRIVATE -fvisibility=hidden)
+    if (NOT MGPS_BUILD_TESTS_ONLY)
+        target_compile_options(mgps-plugin-70mai PRIVATE -fvisibility=hidden)
+    endif()
 endif()
 
 
-install(TARGETS mgps-plugin-70mai
-    LIBRARY
-        DESTINATION lib/mgps
-        COMPONENT plugin-70mai
-    RUNTIME
-        DESTINATION bin/mgps
-        COMPONENT plugin-70mai)
+if (NOT MGPS_BUILD_TESTS_ONLY)
+    install(TARGETS mgps-plugin-70mai
+        LIBRARY
+            DESTINATION lib/mgps
+            COMPONENT plugin-70mai
+        RUNTIME
+            DESTINATION bin/mgps
+            COMPONENT plugin-70mai)
+endif()
 
 if (MGPS_BUILD_TESTS)
     add_executable(70mai-tests 70mai_filename_info_unittests.cc)
