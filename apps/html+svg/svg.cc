@@ -168,7 +168,9 @@ namespace mgps::svg {
 		auto const cm = scale * 2 / 300;
 		auto const height = bounds.height() * scale;
 		auto const width = bounds.width() * scale;
-		fmt::print(out, R"(<div class="route">
+		fmt::print(out, R"(
+
+<div class="route">
 <svg width="{0}cm" height="{1}cm" viewBox=" 0 0 {2} {3}" xmlns="http://www.w3.org/2000/svg" style="stroke:#255fb2;stroke-width:60;stroke-linejoin:round;stroke-linecap:round;fill:none">
 <rect x="0" y="0" width="{2}" height="{3}" rx="600" style="fill:#FEF7E0;stroke:none"/>
 )",
@@ -220,7 +222,7 @@ namespace mgps::svg {
 <title>{} km, {} ({} km/h avg)</title>
 </path>)",
 			           distance, dur{line.duration},
-			           int(distance / hourf{line.duration}.count() + .5));
+			           line.duration.count() ? int(distance / hourf{line.duration}.count() + .5) : 0);
 
 			if (!line.points.empty()) {
 				auto const& pt = camera.project(line.points.front());
@@ -253,15 +255,12 @@ namespace mgps::svg {
 		    trip.start - date::floor<date::days>(trip.start);
 
 		fmt::print(out, R"(
-<h2>{}</h2>
-
-)",
+<h2>{}</h2>)",
 		           dur{date::floor<ch::minutes>(start_hour)});
 
 		svg_trace(out, trip.trace);
 
 		fmt::print(out, R"(
-
 <h3>Information</h3>
 
 <table class="info">
@@ -329,7 +328,6 @@ namespace mgps::svg {
 
 		out << R"(</td></tr>
 </table>
-
 )";
 	}
 
@@ -437,9 +435,7 @@ a { text-decoration: none }
 }
 
 </style>
-<body>
-
-)";
+<body>)";
 
 		date::local_days prev_date{};
 		for (auto const& trip : trips) {
@@ -447,12 +443,11 @@ a { text-decoration: none }
 
 			if (date != prev_date) {
 				prev_date = date;
-				fmt::print(out, "<h1>{}</h1>\n", date);
+				fmt::print(out, "\n<h1>{}</h1>", date);
 			}
 			trace_trip(out, trip);
 		}
-		fmt::print(out, R"(
-<div class='versions'>Generated using <span class='module'>mGPS<small> ({})</small></span>)",
+		fmt::print(out, R"(<div class='versions'>Generated using <span class='module'>mGPS<small> ({})</small></span>)",
 		           get_version().str.ui);
 		auto& plugins = lib.plugins();
 		if (!plugins.empty()) {

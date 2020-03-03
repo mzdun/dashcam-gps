@@ -10,6 +10,23 @@ set(PROJECT_VERSION_STABILITY "-alpha" # or "-beta", or "-rc.1", or "-rc.2", or 
     CACHE STRING "" FORCE)
 
 include(semver_meta)
+include(packing)
+
+set(COVERALLS_FILE ${PROJECT_BINARY_DIR}/coveralls-${CPACK_SYSTEM_NAME}.json)
+set(COVERALLS_DIRS
+    apps/html+svg
+    extras/mgps-70mai
+    src/common/mgps
+    src/mgps
+    src/plugin/mgps
+)
+set(COVERALLS_IGNORE_FILES
+    "apps/html+svg/main.cc"
+    "*_ut.cc"
+    "*_unittests.cc"
+    "*_unittests.hh"
+)
+include(tools/coveralls/Coveralls.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,6 +66,8 @@ function(print_option OPT)
 endfunction( )
 
 foreach(OPT
+    COVERALLS
+    COVERALLS_EXTERNAL_TESTS
     MGPS_PACK_COMPONENTS
     MGPS_BUILD_TOOLS
     MGPS_BUILD_QT5
@@ -60,6 +79,10 @@ foreach(OPT
 endforeach()
 if (NOT ANDROID)
 	print_option(MGPS_BUILD_JNI)
+endif()
+
+if (COVERALLS AND NOT MGPS_BUILD_TESTS)
+  message(FATAL_ERROR "Coveralls are useless without -DMGPS_BUILD_TESTS=ON")
 endif()
 
 if (NOT ANDROID AND MGPS_BUILD_JNI)
@@ -74,4 +97,7 @@ add_subdirectory(src)
 add_subdirectory(extras)
 add_subdirectory(apps)
 
-include(packing)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ${MGPS_PACK_COMPONENTS})
+
+# This must always be last!
+include(CPack)

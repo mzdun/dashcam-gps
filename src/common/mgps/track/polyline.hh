@@ -6,8 +6,8 @@
 
 namespace mgps::track {
 	struct gps_point : point {
-		speed_km kmph;
-		ch::milliseconds offset;
+		speed_km kmph{};
+		ch::milliseconds offset{};
 	};
 
 	struct polyline : timeline_item {

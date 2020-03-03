@@ -1,5 +1,6 @@
 def cmakeOpts = '-DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_QT5=ON -DMGPS_BUILD_TOOLS=ON -DMGPS_BUILD_TESTS=ON'
 def cmakeOpts_rel = ' -DMGPS_PACK_COMPONENTS=OFF'
+def cmakeOpts_cov = ' -DCOVERALLS=ON -DCOVERALLS_EXTERNAL_TESTS=ON'
 def builds = [
     [name: 'Release',  args: cmakeOpts, type: 'release', releaseable: true],
     [name: 'Debug',  args: cmakeOpts, type: 'debug'],
@@ -34,7 +35,10 @@ linux.builds = linux.builds + [
             ],
             environment: [ "CC=afl-gcc", "CXX=afl-g++" ]
         ],
+    tests: linux.builds.release + [ coverage:true ]
 ]
+
+linux.builds.debug = linux.builds.debug + [ coverage:true ]
 
 Map windows = [
     call: { String script, String label -> bat script:"@${script}", label:label },
@@ -146,6 +150,7 @@ def createCMakeBuild(Map conan, Map os, Map task) {
         os.call("cpack -G ${type.packer}")
 
         if (cmakeConfigure.contains(' -DMGPS_BUILD_TESTS=ON ')) {
+
             String test_config = type.test_config ?: type.build
             if (test_config != null)
                 test_config = " -C $test_config"
@@ -153,15 +158,29 @@ def createCMakeBuild(Map conan, Map os, Map task) {
                 test_config = ''
 
             os.callNoCheck("ctest$test_config --output-on-failure")
+
+            def coverage = type != null && type.containsKey('coverage') ? type.coverage : false
+            if (coverage)
+                os.call("${cmakeBinary} --build . -- coveralls", null)
         }
     }
 }
 
-def createJob(Map platform, Map build, Map conan) {
+def createJob(Map platform, Map build, Map conan, String cmakeOpts_cov) {
     Map os = platform.os
+    Map type = os.builds[build.type]
+    if (type == null && build.containsKey('basedOn'))
+        type = os.builds[build.basedOn]
+
     String nodeLabel = platform.node
     String stageName = "${build.name}/${platform.name}"
     String arch = os.arch ?: 'x86_64'
+    def config = " ${build.args} "
+    def testable = config.contains(' -DMGPS_BUILD_TESTS=ON ')
+    def coverage = (type != null && type.containsKey('coverage') ? type.coverage : false) && testable
+    if (coverage)
+        build.args += cmakeOpts_cov
+
     return {
         stage("${stageName}") {
             node("${nodeLabel}") {
@@ -181,12 +200,15 @@ def createJob(Map platform, Map build, Map conan) {
                     }
                 }
 
-                def config = " ${build.args} "
-                if (config.contains(' -DMGPS_BUILD_TESTS=ON ')) {
+                if (testable) {
                     junit "build/${build.type}/testing-results/*.xml"
                 }
 
                 archiveArtifacts "build/${build.type}/dashcam-gps-*"
+                if (coverage) {
+                    sh "ls -lah build/${build.type}"
+                    archiveArtifacts "build/${build.type}/coveralls-*.json"
+                }
             }
         }
     }
@@ -254,7 +276,7 @@ stage('Build') {
             def should_build = releaseable == allowNormalBuilds ? allowNormalBuilds : allowNormalBuilds != params.MAKE_A_RELEASE_BUILD
 
             if (should_build) {
-                def build_opts = build
+                def build_opts = build + [args: build.args]
                 if (params.MAKE_A_RELEASE_BUILD) {
                     def args = build.args + cmakeOpts_rel
                     if (allowNormalBuilds) {
@@ -264,7 +286,7 @@ stage('Build') {
                     }
                     build_opts = build + [args: args]
                 }
-                tasks["${build.name}/${platform.name}"] = createJob(platform, build_opts, conan)
+                tasks["${build.name}/${platform.name}"] = createJob(platform, build_opts, conan, cmakeOpts_cov)
             }
         }
     }

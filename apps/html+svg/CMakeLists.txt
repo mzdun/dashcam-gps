@@ -9,9 +9,16 @@ if (NOT MGPS_BUILD_TESTS_ONLY)
 endif()
 
 if (MGPS_BUILD_TESTS)
-    add_executable(html+svg-tests debug.cc debug.hh debug_fmt_unittests.cc)
+    add_executable(html+svg-tests
+        svg.cc
+        svg.hh
+        debug.cc
+        debug.hh
+        debug_fmt_unittests.cc
+        svg_unittests.cc
+        svg_media_unittests.cc)
     target_include_directories(html+svg-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(html+svg-tests PRIVATE mgps-common CONAN_PKG::fmt CONAN_PKG::gtest)
+    target_link_libraries(html+svg-tests PRIVATE mgps CONAN_PKG::fmt CONAN_PKG::gtest)
     set_target_properties(html+svg-tests PROPERTIES FOLDER ${FOLDER_APPS})
 
     if (NOT DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE} OR DEFINED ENV{PROJECT_VERSION_BUILD_RELEASE_TESTS})

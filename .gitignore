@@ -4,3 +4,4 @@ build/
 artifacts/
 build.*/
 .vscode
+web.log
