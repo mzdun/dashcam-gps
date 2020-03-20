@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <memory>
 
 namespace mgps::plugin::isom {
 	enum : uint64_t {
@@ -547,6 +548,7 @@ namespace mgps::plugin::isom {
 		virtual uint64_t seek_end() = 0;
 
 		bool is_isom();
+		virtual bool valid() const noexcept = 0;
 
 		template <typename T>
 		T get() {
@@ -576,6 +578,11 @@ namespace mgps::plugin::isom {
 		}
 	};
 
+	struct fs_data {
+		virtual ~fs_data();
+		virtual std::unique_ptr<isom::storage> open(char const* filename) = 0;
+	};
+
 	class range_storage : public storage {
 		storage* stg_;
 		uint64_t lower_;
@@ -592,6 +599,7 @@ namespace mgps::plugin::isom {
 		uint64_t tell() override;
 		uint64_t seek(uint64_t offset) override;
 		uint64_t seek_end() override;
+		bool valid() const noexcept override;
 	};
 
 	struct boxes {

@@ -1,7 +1,6 @@
 #include <api.hh>
 #include <cmath>
 #include <filesystem>
-#include <mgps/plugin/cstdio.hh>
 
 namespace fs = std::filesystem;
 
@@ -23,42 +22,45 @@ namespace mgps::plugin::mai::api {
 		}
 	}  // namespace
 
-	bool probe(char const* filename) {
+	bool probe(char const* filename, isom::fs_data* fs) {
 		auto info = isom::mai::get_filename_info(filename);
 		if (info.type == clip::unrecognized) return false;
 
-		auto bits = isom::cstdio::open(filename);
-		if ((!bits.valid()) || (!bits.is_isom())) return false;
+		auto bits = fs->open(filename);
+		if ((!bits->valid()) || (!bits->is_isom())) return false;
 
 		return true;
 	}
 
-	bool load(char const* filename, mgps::plugin::file_info* out) {
+	bool load(char const* filename,
+	          mgps::plugin::file_info* out,
+	          isom::fs_data* fs) {
 		if (!out) return false;
 
 		using namespace isom::mai;
 
 		auto const info = get_filename_info(filename);
 		if (info.type == clip::unrecognized) return false;
-		return load(filename, info.type, info.ts.time_since_epoch(), out);
+		return load(filename, info.type, info.ts.time_since_epoch(), out, fs);
 	}
 
 	bool load(char const* filename,
 	          clip force_type,
 	          std::chrono::milliseconds force_ts,
-	          file_info* out) {
+	          file_info* out,
+	          isom::fs_data* fs) {
 		if (!out) return false;
 
 		using namespace isom;
 		using namespace isom::mai;
 
-		auto bits = cstdio::open(filename);
-		if ((!bits.valid()) || (!bits.is_isom())) return false;
+		auto bits = fs->open(filename);
+		if ((!bits->valid()) || (!bits->is_isom())) return false;
 
 		file_reader_data data{};
 
-		auto const size = bits.seek_end();
-		if (!read_box<file_reader>(bits, {0u, size, box_type::UNKNOWN}, data))
+		auto const size = bits->seek_end();
+		if (!read_box<file_reader>(*bits, {0u, size, box_type::UNKNOWN}, data))
 			return false;
 
 		if (data.duration <= std::chrono::milliseconds::zero() ||

@@ -14,7 +14,6 @@ namespace mgps::plugin::isom::cstdio {
 
 	public:
 		storage(file bits) : bits_{std::move(bits)} {}
-		bool valid() const noexcept { return !!bits_; }
 
 		uint64_t offset() const noexcept override;
 		bool eof() const noexcept override;
@@ -22,7 +21,12 @@ namespace mgps::plugin::isom::cstdio {
 		uint64_t tell() override;
 		uint64_t seek(uint64_t offset) override;
 		uint64_t seek_end() override;
+		bool valid() const noexcept override { return !!bits_; }
 	};
 
 	storage open(char const* path, char const* mode = "rb");
+
+	struct fs_data : public isom::fs_data {
+		std::unique_ptr<isom::storage> open(char const* filename) override;
+	};
 }  // namespace mgps::isom::cstdio

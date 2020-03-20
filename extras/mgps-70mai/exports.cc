@@ -1,11 +1,14 @@
 #include <api.hh>
+#include <mgps/plugin/cstdio.hh>
 
 API_EXPORT bool mgps_probe(char const* filename) {
-	return mgps::plugin::mai::api::probe(filename);
+	mgps::plugin::isom::cstdio::fs_data fs{};
+	return mgps::plugin::mai::api::probe(filename, &fs);
 }
 
 API_EXPORT bool mgps_load(char const* filename, mgps::plugin::file_info* out) {
-	return mgps::plugin::mai::api::load(filename, out);
+	mgps::plugin::isom::cstdio::fs_data fs{};
+	return mgps::plugin::mai::api::load(filename, out, &fs);
 }
 
 // developed alongside main project, hence the same version...

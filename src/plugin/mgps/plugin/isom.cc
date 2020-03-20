@@ -42,6 +42,8 @@ namespace mgps::plugin::isom {
 		return false;
 	}
 
+	fs_data::~fs_data() = default;
+
 	range_storage::range_storage(storage* stg, uint64_t offset, uint64_t size)
 	    : stg_{stg}, lower_{offset}, position_{offset}, upper_{size + offset} {}
 
@@ -75,6 +77,8 @@ namespace mgps::plugin::isom {
 	}
 
 	uint64_t range_storage::seek_end() { return seek(upper_ - lower_); }
+
+	bool range_storage::valid() const noexcept { return stg_ && stg_->valid(); }
 
 	bool boxes::has_box(storage& bits) {
 		bits.seek(next_box_at_);

@@ -83,4 +83,8 @@ namespace mgps::plugin::isom::cstdio {
 	storage open(char const* path, char const* mode) {
 		return file{std::fopen(path, mode)};
 	}
+
+	std::unique_ptr<isom::storage> fs_data::open(char const* filename) {
+		return std::make_unique<storage>(cstdio::open(filename));
+	}
 }  // namespace mgps::isom::cstdio
