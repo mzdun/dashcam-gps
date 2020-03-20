@@ -50,12 +50,24 @@ if (UNIX)
     target_link_libraries(mgps PUBLIC dl)
 endif()
 
+add_library(mgps-static STATIC ${MGPS_SOURCES})
+target_include_directories(mgps-static PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_link_libraries(mgps-static PUBLIC fs-polyfill mgps-common PRIVATE mgps-plugin)
+target_compile_definitions(mgps-static PUBLIC MGPS_COMPILED=1 MGPS_STATIC=1)
+
+if (UNIX)
+    target_link_libraries(mgps-static PUBLIC dl)
+endif()
+
 dir_filters(MGPS_SOURCES)
 set_target_properties(mgps PROPERTIES
     FOLDER ${FOLDER_CORE}
     POSITION_INDEPENDENT_CODE ON
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR})
+
+set_target_properties(mgps-static PROPERTIES
+    FOLDER ${FOLDER_CORE})
 
 if (NOT MGPS_BUILD_TESTS_ONLY)
     install(TARGETS mgps 

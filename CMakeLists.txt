@@ -22,6 +22,7 @@ set(COVERALLS_DIRS
 )
 set(COVERALLS_IGNORE_FILES
     "apps/html+svg/main.cc"
+    "extras/mgps-70mai/fuzzer/boxes.cc"
     "*_ut.cc"
     "*_unittests.cc"
     "*_unittests.hh"

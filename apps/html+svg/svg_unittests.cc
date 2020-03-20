@@ -25,8 +25,8 @@ namespace svg::testing {
 
 	struct plug_info : mgps::loader::loader_interface {
 		plug_info(mgps::loader::plugin_info const& nfo) : nfo_{nfo} {}
-		bool probe(char const* filename) const override { return false; }
-		bool load(char const* filename, mgps::media_file* out) const override {
+		bool probe(char const*) const override { return false; }
+		bool load(char const*, mgps::media_file*) const override {
 			return false;
 		}
 		mgps::loader::plugin_info const& info() const noexcept override {
@@ -158,11 +158,15 @@ namespace svg::testing {
 	static svg_test const svg_tests_trace[] = {
 	    {make_output()},
 	    {make_output(one_empty_trip), {mgps::trip{}}},
-	    {make_output(one_empty_trip_with_date), {mgps::trip{local_days{2000_y/mar/14} + 12h + 34min + 45s}}},
+	    {make_output(one_empty_trip_with_date),
+	     {mgps::trip{local_days{2000_y / mar / 14} + 12h + 34min + 45s,
+	                 {},
+	                 {},
+	                 nullptr}}},
 	    {make_output(two_empty_trips), {mgps::trip{}, mgps::trip{}}},
 	    {make_output(trip_1line_1deg_north),
 	     {
-	         mgps::trip{local_days{2000_y/mar/14} + 12h + 34min + 45s,
+	         mgps::trip{local_days{2000_y / mar / 14} + 12h + 34min + 45s,
 	                    {},
 	                    trace{{{}, 1000s},
 	                          {polyline{{{}, 1000s},
@@ -172,7 +176,7 @@ namespace svg::testing {
 	     }},
 	    {make_output(trip_2line_2degs_north_south),
 	     {
-	         mgps::trip{local_days{2000_y/mar/14} + 12h + 34min + 45s,
+	         mgps::trip{local_days{2000_y / mar / 14} + 12h + 34min + 45s,
 	                    {},
 	                    trace{
 	                        {{}, 2000s},

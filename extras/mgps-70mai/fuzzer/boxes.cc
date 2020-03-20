@@ -1,5 +1,6 @@
 #include <api.hh>
 #include <iostream>
+#include <mgps/plugin/cstdio.hh>
 
 namespace mgps {
 	using namespace plugin;
@@ -47,8 +48,9 @@ int main(int argc, char** argv) {
 
 	using namespace mgps::plugin;
 
+	mgps::plugin::isom::cstdio::fs_data fs{};
 	file_info out = mgps::create();
-	auto const result = mai::api::load(argv[1], mgps::clip::normal, {}, &out);
+	auto const result = mai::api::load(argv[1], mgps::clip::normal, {}, &out, &fs);
 	if (!result) {
 		std::cerr << "fuzzer-70mai-boxes: cannot open " << argv[1] << "\n";
 		return 1;

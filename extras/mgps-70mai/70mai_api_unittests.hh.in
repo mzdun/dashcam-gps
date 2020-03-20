@@ -1,0 +1,5 @@
+#pragma once
+
+namespace mgps::plugin::mai::api::testing {
+    constexpr char data_dir[] = "@CMAKE_CURRENT_SOURCE_DIR@/fuzzer/data/";
+}

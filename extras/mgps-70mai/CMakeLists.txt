@@ -70,9 +70,11 @@ if (NOT MGPS_BUILD_TESTS_ONLY)
 endif()
 
 if (MGPS_BUILD_TESTS)
-    add_executable(70mai-tests 70mai_filename_info_unittests.cc)
-    target_include_directories(70mai-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(70mai-tests PRIVATE 70mai CONAN_PKG::gtest)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/70mai_api_unittests.hh.in" "${CMAKE_CURRENT_BINARY_DIR}/70mai_api_unittests.hh" @ONLY)
+    add_executable(70mai-tests fuzzer/data/xxd_fs_data_unittests.cc exports.cc 70mai_filename_info_unittests.cc 70mai_api_unittests.cc)
+    target_compile_definitions(70mai-tests PRIVATE IMPLEMENTING_PLUGIN)
+    target_include_directories(70mai-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    target_link_libraries(70mai-tests PRIVATE 70mai mgps-static CONAN_PKG::gtest)
     set_target_properties(70mai-tests PROPERTIES
         FOLDER ${FOLDER_EXTRAS})
 
