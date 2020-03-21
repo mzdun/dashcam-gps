@@ -1,0 +1,46 @@
+language: c++
+
+os: linux
+dist: bionic
+sudo: required
+
+addons:
+  apt:
+    packages: [ curl, gcc-8, g++-8, python3-setuptools, python3-pip, ninja-build ]
+
+before_install:
+  - sudo apt-get update -qq
+
+install:
+  # setup g++ 8
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 90
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-8 90
+  # install and configure conan
+  - sudo python3 -m pip install --upgrade pip
+  - sudo python3 -m pip install conan
+  - conan user
+  # install cmake
+  - CMAKE_VERSION="3.17"
+  - CMAKE_FULL="${CMAKE_VERSION}.0"
+  - pushd ~
+  - curl "https://cmake.org/files/v${CMAKE_VERSION}/cmake-${CMAKE_FULL}-Linux-x86_64.tar.gz" -o "cmake-${CMAKE_FULL}-Linux-x86_64.tar.gz"
+  - tar xf "cmake-${CMAKE_FULL}-Linux-x86_64.tar.gz"
+  - export PATH="${PWD}/cmake-${CMAKE_FULL}-Linux-x86_64/bin:${PATH}"
+  - popd
+  # verify installed versions
+  - which cmake
+  - cmake --version
+  - python3 --version
+  - conan --version
+  - ninja --version
+  - g++ --version
+  - gcov --version
+  - curl --version
+
+script:
+  - mkdir build
+  - cd build
+  - conan install .. --build missing -s build_type=Debug -s compiler.libcxx=libstdc++11
+  - cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug -DMGPS_BUILD_70MAI=ON -DMGPS_BUILD_TOOLS=ON -DMGPS_BUILD_TESTS=ON -DCOVERALLS=ON -DCOVERALLS_UPLOAD=ON
+  - ninja && ninja coveralls

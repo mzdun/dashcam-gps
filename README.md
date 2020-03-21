@@ -1,5 +1,7 @@
 # Dashcam GPS Viewer
 
+[![Coverage Status](https://coveralls.io/repos/github/mzdun/dashcam-gps/badge.svg?branch=master)](https://coveralls.io/github/mzdun/dashcam-gps?branch=master)
+
 ## Goals
 
 Three goals for the project:
